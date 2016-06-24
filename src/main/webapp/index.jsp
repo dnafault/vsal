@@ -12,11 +12,11 @@
 <p>Example queries:</p>
 <ul>
     <li><a href="<%= request.getRequestURL()%>beacon/"><%= request.getRequestURL()%>beacon/</a></li>
-    <li><a href="<%= request.getRequestURL()%>beacon/query?chrom=1&pos=52066&allele=C&ref=hg19">
-        <%= request.getRequestURL()%>beacon/query?chrom=1&pos=52066&allele=C&ref=hg19
+    <li><a href="<%= request.getRequestURL()%>beacon/query?chrom=1&pos=52065&allele=C&ref=hg19">
+        <%= request.getRequestURL()%>beacon/query?chrom=1&pos=52065&allele=C&ref=hg19
     </a></li>
-    <li><a href="<%= request.getRequestURL()%>beacon/query?chrom=1&pos=52066&allele=T&ref=hg19">
-        <%= request.getRequestURL()%>beacon/query?chrom=1&pos=52066&allele=T&ref=hg19
+    <li><a href="<%= request.getRequestURL()%>beacon/query?chrom=1&pos=52065&allele=T&ref=hg19">
+        <%= request.getRequestURL()%>beacon/query?chrom=1&pos=52065&allele=T&ref=hg19
     </a></li>
 </ul>
 </body>

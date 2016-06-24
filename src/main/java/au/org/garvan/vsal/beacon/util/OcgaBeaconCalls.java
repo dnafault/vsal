@@ -21,8 +21,6 @@ import java.util.Properties;
 /**
  * OpenCGA Rest Calls for Beacon
  *
- * TODO: 0-based ?
- *
  * @author Dmitry Degrave (dmeetry@gmail.com)
  * @version 0.1
  */
@@ -148,8 +146,9 @@ public class OcgaBeaconCalls {
 
     private int getNumVariantsInStudy(Integer studyId, Query query) throws IOException {
         String url = baseurl + "/studies/" + studyId + "/variants";
+        Long pos = query.getPosition() + 1; // convert 0-based beacon protocol into 1-based VCF position
         MultivaluedMap queryParams = new MultivaluedMapImpl();
-        queryParams.add("region", query.getChromosome() + ":" + query.getPosition() + "-" + query.getPosition());
+        queryParams.add("region", query.getChromosome() + ":" + pos + "-" + pos);
         queryParams.add("alternate", query.getAllele());
         queryParams.add("count", "true");
         queryParams.add("sid", sessionId);

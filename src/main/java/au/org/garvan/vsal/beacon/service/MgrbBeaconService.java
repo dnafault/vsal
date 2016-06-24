@@ -52,7 +52,7 @@ public class MgrbBeaconService implements BeaconService {
     @PostConstruct
     public void init() {
         this.dataset = new Dataset("mgrb", "MGRB", "hg19", null, null);
-        this.query = new Query("C/G", Chromosome.CHR1, 52066L, Reference.HG19, "mgrb");
+        this.query = new Query("C/G", Chromosome.CHR1, 52065L, Reference.HG19, "mgrb");
         this.queries = new ArrayList<>();
         this.queries.add(query);
         this.datasets = new ArrayList<>();

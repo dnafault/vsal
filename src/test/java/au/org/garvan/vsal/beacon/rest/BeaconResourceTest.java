@@ -109,7 +109,7 @@ public class BeaconResourceTest {
 
     @Test
     public void testTrueQuery(@ArquillianResource URL url) throws JAXBException, MalformedURLException {
-        String[] query = {"1", "52066", "C", "HG19"};
+        String[] query = {"1", "52065", "C", "HG19"};
         BeaconResponse br = readBeaconResponse(url.toExternalForm() + getUrl(BEACON, query));
 
         assertNotNull(br);
@@ -119,7 +119,7 @@ public class BeaconResourceTest {
 
     @Test
     public void testFalseQuery(@ArquillianResource URL url) throws JAXBException, MalformedURLException {
-        String[] query = {"1", "52066", "T", "HG19"};
+        String[] query = {"1", "52065", "T", "HG19"};
         BeaconResponse br = readBeaconResponse(url.toExternalForm() + getUrl(BEACON, query));
 
         assertNotNull(br);
