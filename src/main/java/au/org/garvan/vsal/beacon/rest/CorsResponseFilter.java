@@ -3,14 +3,13 @@
  */
 package au.org.garvan.vsal.beacon.rest;
 
-import java.io.IOException;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
 import javax.ws.rs.ext.Provider;
+import java.io.IOException;
 
 @Provider
-//@Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN})
 public class CorsResponseFilter implements ContainerResponseFilter {
 
     @Override

@@ -1,22 +1,22 @@
 /*
  * Copyright 2016 Garvan Institute of Medical Research
  */
-package au.org.garvan.vsal.beacon.util;
+package au.org.garvan.vsal.beacon.rest;
 
 import au.org.garvan.vsal.beacon.entity.Query;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
-import javax.ws.rs.core.MultivaluedMap;
-
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.core.util.MultivaluedMapImpl;
+
+import javax.ws.rs.core.MultivaluedMap;
 import java.io.FileNotFoundException;
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -66,23 +66,21 @@ public class OcgaBeaconCalls {
         }
     }
 
-    private ClientResponse ocgaRestCall(String url, MultivaluedMap params) throws IOException {
-        ClientResponse response = null;
+    private ClientResponse ocgaRestCall(String url, MultivaluedMap<String,String> params) throws IOException {
         try {
             Client client = Client.create();
             WebResource webResource = client.resource(url);
-            response = webResource.queryParams(params).accept("application/json").get(ClientResponse.class);
+            return webResource.queryParams(params).accept("application/json").get(ClientResponse.class);
         } catch (Exception e) {
             throw new IOException("REST Backend Exception");
         }
-        return response;
     }
 
     private synchronized void ocgaLogin() throws IOException {
         if (sessionId == null || sessionId.isEmpty()) {
             baseurl = "http://" + prop.getProperty("opencga.host") + prop.getProperty("opencga.resturl");
             String url = baseurl + "/users/" + prop.getProperty("opencga.user") + "/login";
-            MultivaluedMap queryParams = new MultivaluedMapImpl();
+            MultivaluedMap<String,String> queryParams = new MultivaluedMapImpl();
             queryParams.add("password", prop.getProperty("opencga.password"));
             ClientResponse res = ocgaRestCall(url,queryParams);
 
@@ -111,7 +109,7 @@ public class OcgaBeaconCalls {
 
     private List<Integer> getStudyIds() throws IOException {
         String url = baseurl + "/projects/" + prop.getProperty("opencga.projectId") + "/studies";
-        MultivaluedMap queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String,String> queryParams = new MultivaluedMapImpl();
         queryParams.add("sid", sessionId);
         ClientResponse queryResult = ocgaRestCall(url,queryParams);
 
@@ -124,7 +122,7 @@ public class OcgaBeaconCalls {
         String jsonLine = queryResult.getEntity(String.class);
         JsonElement jsonElement = new JsonParser().parse(jsonLine);
         List<Integer> studies = new ArrayList<>();
-        int numStudies = 0;
+        int numStudies;
 
         if (jsonElement.isJsonObject()) {
             jsonObject = jsonElement.getAsJsonObject();
@@ -138,7 +136,7 @@ public class OcgaBeaconCalls {
                     jsonArray = jsonElement.getAsJsonArray();
                     for (int i=0; i < numStudies; ++i) {
                         jsonObject = jsonArray.get(i).getAsJsonObject();
-                        studies.add(new Integer(jsonObject.get("id").getAsInt()));
+                        studies.add(jsonObject.get("id").getAsInt());
                     }
                 }
             }
@@ -150,7 +148,7 @@ public class OcgaBeaconCalls {
     private int getNumVariantsInStudy(Integer studyId, Query query) throws IOException {
         String url = baseurl + "/studies/" + studyId + "/variants";
         Long pos = query.getPosition() + 1; // convert 0-based beacon protocol into 1-based VCF position
-        MultivaluedMap queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String,String> queryParams = new MultivaluedMapImpl();
         queryParams.add("region", query.getChromosome() + ":" + pos + "-" + pos);
         queryParams.add("alternate", query.getAllele());
         queryParams.add("count", "true");

@@ -26,10 +26,10 @@
  */
 package au.org.garvan.vsal.beacon.service;
 
-import au.org.garvan.vsal.beacon.entity.Error;
-import au.org.garvan.vsal.beacon.util.OcgaBeaconCalls;
-import au.org.garvan.vsal.beacon.util.QueryUtils;
 import au.org.garvan.vsal.beacon.entity.*;
+import au.org.garvan.vsal.beacon.entity.Error;
+import au.org.garvan.vsal.beacon.rest.OcgaBeaconCalls;
+import au.org.garvan.vsal.beacon.util.QueryUtils;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.RequestScoped;
@@ -71,8 +71,7 @@ public class MgrbBeaconService implements BeaconService {
         if (chrom == null || pos == null || allele == null || ref == null) {
             Error errorResource = new Error("Incomplete Query", "Required parameters are missing.");
             Response responseResource = new Response(null, null, null, null, errorResource);
-            BeaconResponse response = new BeaconResponse(beacon.getId(), QueryUtils.getQuery(chrom, pos, allele, ref, dataset), responseResource);
-            return response;
+            return new BeaconResponse(beacon.getId(), QueryUtils.getQuery(chrom, pos, allele, ref, dataset), responseResource);
         }
 
         Query q = QueryUtils.getQuery(chrom, pos, allele, ref, dataset);
@@ -81,23 +80,19 @@ public class MgrbBeaconService implements BeaconService {
         if (q.getReference() == null || q.getReference() != Reference.HG19) {
             Error errorResource = new Error("Incorrect Query", "Reference: \'" + ref + "\' is incorrect. Accepted Reference: HG19");
             Response responseResource = new Response(null, null, null, null, errorResource);
-            BeaconResponse response = new BeaconResponse(beacon.getId(), QueryUtils.getQuery(chrom, pos, allele, ref, dataset), responseResource);
-            return response;
+            return new BeaconResponse(beacon.getId(), QueryUtils.getQuery(chrom, pos, allele, ref, dataset), responseResource);
         } else if (q.getChromosome() == null) {
             Error errorResource = new Error("Incorrect Query", "Chromosome: \'" + chrom + "\' is incorrect.");
             Response responseResource = new Response(null, null, null, null, errorResource);
-            BeaconResponse response = new BeaconResponse(beacon.getId(), QueryUtils.getQuery(chrom, pos, allele, ref, dataset), responseResource);
-            return response;
+            return new BeaconResponse(beacon.getId(), QueryUtils.getQuery(chrom, pos, allele, ref, dataset), responseResource);
         } else if (q.getPosition() == null) {
             Error errorResource = new Error("Incorrect Query", "Position: \'" + pos + "\' is incorrect.");
             Response responseResource = new Response(null, null, null, null, errorResource);
-            BeaconResponse response = new BeaconResponse(beacon.getId(), QueryUtils.getQuery(chrom, pos, allele, ref, dataset), responseResource);
-            return response;
+            return new BeaconResponse(beacon.getId(), QueryUtils.getQuery(chrom, pos, allele, ref, dataset), responseResource);
         } else if (q.getAllele() == null) {
             Error errorResource = new Error("Incorrect Query", "Allele: \'" + allele + "\' is incorrect.");
             Response responseResource = new Response(null, null, null, null, errorResource);
-            BeaconResponse response = new BeaconResponse(beacon.getId(), QueryUtils.getQuery(chrom, pos, allele, ref, dataset), responseResource);
-            return response;
+            return new BeaconResponse(beacon.getId(), QueryUtils.getQuery(chrom, pos, allele, ref, dataset), responseResource);
         }
 
         // call to OpenCGA
@@ -109,13 +104,11 @@ public class MgrbBeaconService implements BeaconService {
         } catch (Exception e) {
             Error errorResource = new Error("Runtime exception", e.getMessage());
             Response responseResource = new Response(null, null, null, null, errorResource);
-            BeaconResponse response = new BeaconResponse(beacon.getId(), q, responseResource);
-            return response;
+            return new BeaconResponse(beacon.getId(), q, responseResource);
         }
 
-        Response responseResource = new Response(n>0?true:false, n, null, "bla!", null);
-        BeaconResponse response = new BeaconResponse(beacon.getId(), q, responseResource);
-        return response;
+        Response responseResource = new Response(n>0, n, null, "bla!", null);
+        return new BeaconResponse(beacon.getId(), q, responseResource);
     }
 
     @Override
