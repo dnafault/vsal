@@ -3,8 +3,7 @@
  */
 package au.org.garvan.vsal.core.rest;
 
-import au.org.garvan.vsal.beacon.rest.BeaconResource;
-import au.org.garvan.vsal.beacon.rest.InfoResource;
+import au.org.garvan.vsal.beacon.rest.CorsResponseFilter;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
@@ -23,7 +22,7 @@ public class VsalCore extends Application {
 
     @Override
     public Set<Class<?>> getClasses() {
-        return new HashSet<>(Arrays.asList(BeaconResource.class, InfoResource.class));
+        return new HashSet<>(Arrays.asList(CoreResource.class,CorsResponseFilter.class));
     }
 
 }

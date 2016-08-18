@@ -35,7 +35,7 @@ public enum Reference {
 
     private final String ref;
 
-    private Reference(String ref) {
+    Reference(String ref) {
         this.ref = ref;
     }
 

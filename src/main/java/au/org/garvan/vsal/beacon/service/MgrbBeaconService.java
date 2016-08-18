@@ -28,7 +28,7 @@ package au.org.garvan.vsal.beacon.service;
 
 import au.org.garvan.vsal.beacon.entity.*;
 import au.org.garvan.vsal.beacon.entity.Error;
-import au.org.garvan.vsal.beacon.rest.OcgaBeaconCalls;
+import au.org.garvan.vsal.beacon.rest.OcgaCalls;
 import au.org.garvan.vsal.beacon.util.QueryUtils;
 
 import javax.annotation.PostConstruct;
@@ -97,7 +97,7 @@ public class MgrbBeaconService implements BeaconService {
 
         // call to OpenCGA
         int n;
-        OcgaBeaconCalls ocgac = new OcgaBeaconCalls();
+        OcgaCalls ocgac = new OcgaCalls();
 
         try {
             n = ocgac.ocgaBeaconQuery(q);
@@ -107,7 +107,7 @@ public class MgrbBeaconService implements BeaconService {
             return new BeaconResponse(beacon.getId(), q, responseResource);
         }
 
-        Response responseResource = new Response(n>0, n, null, "bla!", null);
+        Response responseResource = new Response(n>0, n, null, "Beacon coordinates are 0-based!", null);
         return new BeaconResponse(beacon.getId(), q, responseResource);
     }
 

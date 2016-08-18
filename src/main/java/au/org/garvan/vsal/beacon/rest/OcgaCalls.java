@@ -4,10 +4,10 @@
 package au.org.garvan.vsal.beacon.rest;
 
 import au.org.garvan.vsal.beacon.entity.Query;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import au.org.garvan.vsal.core.entity.CoreQuery;
+import au.org.garvan.vsal.ocga.entity.*;
+import com.google.gson.*;
+import com.google.gson.reflect.TypeToken;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
@@ -18,23 +18,27 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
+import java.lang.reflect.Type;
+
 /**
- * OpenCGA Rest Calls for Beacon
+ * OpenCGA Rest Calls
  *
  * @author Dmitry Degrave (dmeetry@gmail.com)
  * @version 0.1
  */
-public class OcgaBeaconCalls {
+public class OcgaCalls {
 
     private static String sessionId = null;
     private static String baseurl = null;
     private static String propFileName = "ocga.properties";
     private static Properties prop = null;
 
-    public int ocgaBeaconQuery(Query query) throws IOException {
+    public int ocgaBeaconQuery(Query query)
+            throws IOException {
         // dirty fast checks for static fields
         if (prop == null) {
             readConfig();
@@ -52,7 +56,8 @@ public class OcgaBeaconCalls {
         return numTotalResults;
     }
 
-    private synchronized void readConfig() throws IOException {
+    private synchronized void readConfig()
+            throws IOException {
         if (prop == null) {
             try (InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(propFileName)) {
                 Properties p = new Properties();
@@ -66,52 +71,48 @@ public class OcgaBeaconCalls {
         }
     }
 
-    private ClientResponse ocgaRestCall(String url, MultivaluedMap<String,String> params) throws IOException {
+    private ClientResponse ocgaRestGetCall(String url, MultivaluedMap<String,String> params)
+            throws IOException {
         try {
             Client client = Client.create();
             WebResource webResource = client.resource(url);
             return webResource.queryParams(params).accept("application/json").get(ClientResponse.class);
         } catch (Exception e) {
-            throw new IOException("REST Backend Exception");
+            throw new IOException("OpenCGA REST call exception");
         }
     }
 
-    private synchronized void ocgaLogin() throws IOException {
+    private synchronized void ocgaLogin()
+            throws IOException {
         if (sessionId == null || sessionId.isEmpty()) {
             baseurl = "http://" + prop.getProperty("opencga.host") + prop.getProperty("opencga.resturl");
             String url = baseurl + "/users/" + prop.getProperty("opencga.user") + "/login";
             MultivaluedMap<String,String> queryParams = new MultivaluedMapImpl();
             queryParams.add("password", prop.getProperty("opencga.password"));
-            ClientResponse res = ocgaRestCall(url,queryParams);
 
-            // get sessionId from json
-            JsonArray jsonArray;
-            JsonObject jsonObject;
-            String jsonLine = res.getEntity(String.class);
-            JsonElement jsonElement = new JsonParser().parse(jsonLine);
-
-            if (jsonElement.isJsonObject()) {
-                jsonObject = jsonElement.getAsJsonObject();
-                jsonElement = jsonObject.get("response");
-                if (jsonElement.isJsonArray()) {
-                    jsonArray = jsonElement.getAsJsonArray();
-                    jsonObject = jsonArray.get(0).getAsJsonObject();
-                    jsonElement = jsonObject.get("result");
-                    if (jsonElement.isJsonArray()) {
-                        jsonArray = jsonElement.getAsJsonArray();
-                        jsonObject = jsonArray.get(0).getAsJsonObject();
-                        sessionId = jsonObject.get("sessionId").getAsString();
-                    }
-                }
+            ClientResponse queryResult = ocgaRestGetCall(url,queryParams);
+            if (queryResult.getStatus() != 200) {
+                throw new IOException("REST status: " + queryResult.getStatus());
             }
+//            // JAXB Unmarshalling - works well with Login request
+//            OpenCBLoginQueryResponse ocgaResponse = queryResult.getEntity(OpenCBLoginQueryResponse.class);
+
+//            // Gson Unmarshalling - works well with any request
+            GsonBuilder builder = new GsonBuilder();
+            Gson gson = builder.serializeNulls().create();
+            Type type = new TypeToken<QueryResponse<LoginResponse>>(){}.getType();
+            QueryResponse<LoginResponse> ocgaResponse = gson.fromJson(queryResult.getEntity(String.class), type);
+
+            sessionId = ocgaResponse.getResponse().get(0).getResult().get(0).getSessionId();
         }
     }
 
-    private List<Integer> getStudyIds() throws IOException {
+    private List<Integer> getStudyIds()
+            throws IOException {
         String url = baseurl + "/projects/" + prop.getProperty("opencga.projectId") + "/studies";
         MultivaluedMap<String,String> queryParams = new MultivaluedMapImpl();
         queryParams.add("sid", sessionId);
-        ClientResponse queryResult = ocgaRestCall(url,queryParams);
+        ClientResponse queryResult = ocgaRestGetCall(url,queryParams);
 
         if (queryResult.getStatus() != 200) {
             throw new IOException("REST status: " + queryResult.getStatus());
@@ -145,7 +146,8 @@ public class OcgaBeaconCalls {
         return studies;
     }
 
-    private int getNumVariantsInStudy(Integer studyId, Query query) throws IOException {
+    private int getNumVariantsInStudy(Integer studyId, Query query)
+            throws IOException {
         String url = baseurl + "/studies/" + studyId + "/variants";
         Long pos = query.getPosition() + 1; // convert 0-based beacon protocol into 1-based VCF position
         MultivaluedMap<String,String> queryParams = new MultivaluedMapImpl();
@@ -153,7 +155,7 @@ public class OcgaBeaconCalls {
         queryParams.add("alternate", query.getAllele());
         queryParams.add("count", "true");
         queryParams.add("sid", sessionId);
-        ClientResponse queryResult = ocgaRestCall(url,queryParams);
+        ClientResponse queryResult = ocgaRestGetCall(url,queryParams);
 
         if (queryResult.getStatus() != 200) {
             throw new IOException("REST status: " + queryResult.getStatus());
@@ -172,11 +174,77 @@ public class OcgaBeaconCalls {
             if (jsonElement.isJsonArray()) {
                 jsonArray = jsonElement.getAsJsonArray();
                 jsonObject = jsonArray.get(0).getAsJsonObject();
-                numTotalResults = jsonObject.get("numTotalResults").getAsInt();
+                numTotalResults = jsonObject.get("numResults").getAsInt();
             }
         }
 
         return numTotalResults;
+    }
+
+    private List<VariantResponse> getVariantsInStudy(Integer studyId, CoreQuery query)
+            throws IOException {
+        String region;
+        String url = baseurl + "/studies/" + studyId + "/variants";
+        if (query.getPositionStart() != null && query.getPositionEnd() != null) { // 1-based VCF positions
+            region  = query.getChromosome().toString() + ":" + query.getPositionStart() + "-" + query.getPositionEnd();
+        } else {
+            region  = query.getChromosome().toString();
+        }
+
+        MultivaluedMap<String,String> queryParams = new MultivaluedMapImpl();
+        queryParams.add("sid", sessionId);
+        queryParams.add("region", region);
+        if (query.getType() != null) {
+            queryParams.add("type", query.getType().toString());
+        }
+        if (query.getRefAllele() != null && !query.getRefAllele().isEmpty()) {
+            queryParams.add("reference", query.getRefAllele());
+        }
+        if (query.getAltAllele() != null && !query.getAltAllele().isEmpty()) {
+            queryParams.add("alternate", query.getAltAllele());
+        }
+        if (query.getLimit() != null) {
+            queryParams.add("limit", query.getLimit().toString());
+        }
+        if (query.getSkip() != null) {
+            queryParams.add("skip", query.getSkip().toString());
+        }
+
+        ClientResponse queryResult = ocgaRestGetCall(url,queryParams);
+        if (queryResult.getStatus() != 200) {
+            throw new IOException("REST status: " + queryResult.getStatus());
+        }
+
+        // JAXB fails to parse Variant response, so we use Gson Unmarshalling.
+        GsonBuilder builder = new GsonBuilder();
+        Gson gson = builder.serializeNulls().create();
+        Type type = new TypeToken<QueryResponse<VariantResponse>>(){}.getType();
+        QueryResponse<VariantResponse> ocgaResponse = gson.fromJson(queryResult.getEntity(String.class), type);
+
+        return ocgaResponse.getResponse().get(0).getResult();
+    }
+
+    public List<VariantResponse> ocgaFindQuery (CoreQuery coreQuery, List<String> samples)
+            throws IOException {
+        // dirty fast checks for static fields
+        if (prop == null) {
+            readConfig();
+        }
+        if (sessionId == null || sessionId.isEmpty() || baseurl == null) { // sync visibility between static fields
+            ocgaLogin();
+        }
+
+        if (samples != null && !samples.isEmpty()) {
+            //TODO: filtering by samples
+        }
+        List<Integer> studies = getStudyIds();
+        List<VariantResponse> variants = new LinkedList<>();
+
+        for (Integer study : studies) {
+            variants.addAll(getVariantsInStudy(study, coreQuery));
+        }
+
+        return variants;
     }
 
 }
