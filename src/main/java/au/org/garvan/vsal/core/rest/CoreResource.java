@@ -29,10 +29,10 @@ public class CoreResource {
 
     @GET
     public CoreResponse query(@QueryParam("chrom")   String chromosome,
-                              @QueryParam("pos_start") Integer position_start,
-                              @QueryParam("pos_end")   Integer position_end,
-                              @QueryParam("ref_allele")  String ref_allele,
-                              @QueryParam("alt_allele")  String alt_allele,
+                              @QueryParam("positionStart") Integer positionStart,
+                              @QueryParam("positionEnd")   Integer positionEnd,
+                              @QueryParam("refAllele")  String refAllele,
+                              @QueryParam("altAllele")  String altAllele,
                               @QueryParam("dataset") String dataset,
                               //TODO: -> List<String> genes/rsIDs
                               @QueryParam("genes")  String genes,
@@ -61,8 +61,8 @@ public class CoreResource {
         genesList.add(genes);
         rsIDsList.add(rsIDs);
 
-        CoreQuery coreQuery = CoreQueryUtils.getCoreQuery(chromosome, position_start, position_end, ref_allele,
-                alt_allele, "hg19", dataset, genesList, rsIDsList, type, limit, skip,
+        CoreQuery coreQuery = CoreQueryUtils.getCoreQuery(chromosome, positionStart, positionEnd, refAllele,
+                altAllele, "hg19", dataset, genesList, rsIDsList, type, limit, skip,
                 gender, yobStart, yobEnd, sbpStart, sbpEnd, heightStart, heightEnd, weightStart, weightEnd,
                 abdCircStart, abdCircEnd, glcStart, glcEnd);
 
