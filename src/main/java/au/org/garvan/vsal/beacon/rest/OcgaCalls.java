@@ -5,6 +5,7 @@ package au.org.garvan.vsal.beacon.rest;
 
 import au.org.garvan.vsal.beacon.entity.Query;
 import au.org.garvan.vsal.core.entity.CoreQuery;
+import au.org.garvan.vsal.core.entity.CoreVariant;
 import au.org.garvan.vsal.ocga.entity.*;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
@@ -161,12 +162,18 @@ public class OcgaCalls {
             throw new IOException("REST status: " + queryResult.getStatus());
         }
 
+        /*  We could unmarshall all the objects first to get a number of matching alleles here, but
+                a) resultType can get changed once 'count' option starts to work in opencga
+                b) we actually don't need objects unmarshalled
+            hence we traverse manually&fast without unmarshalling.
+         */
+
         // get number of matching alleles
         JsonArray jsonArray;
         JsonObject jsonObject;
         String jsonLine = queryResult.getEntity(String.class);
         JsonElement jsonElement = new JsonParser().parse(jsonLine);
-        Integer numTotalResults = 0;
+        Integer numResults = 0;
 
         if (jsonElement.isJsonObject()) {
             jsonObject = jsonElement.getAsJsonObject();
@@ -174,11 +181,11 @@ public class OcgaCalls {
             if (jsonElement.isJsonArray()) {
                 jsonArray = jsonElement.getAsJsonArray();
                 jsonObject = jsonArray.get(0).getAsJsonObject();
-                numTotalResults = jsonObject.get("numResults").getAsInt();
+                numResults = jsonObject.get("numResults").getAsInt();
             }
         }
 
-        return numTotalResults;
+        return numResults;
     }
 
     private List<VariantResponse> getVariantsInStudy(Integer studyId, CoreQuery query)
@@ -224,7 +231,7 @@ public class OcgaCalls {
         return ocgaResponse.getResponse().get(0).getResult();
     }
 
-    public List<VariantResponse> ocgaFindQuery (CoreQuery coreQuery, List<String> samples)
+    public List<CoreVariant> ocgaFindQuery(CoreQuery coreQuery, List<String> samples)
             throws IOException {
         // dirty fast checks for static fields
         if (prop == null) {
@@ -237,6 +244,7 @@ public class OcgaCalls {
         if (samples != null && !samples.isEmpty()) {
             //TODO: filtering by samples
         }
+
         List<Integer> studies = getStudyIds();
         List<VariantResponse> variants = new LinkedList<>();
 
@@ -244,7 +252,16 @@ public class OcgaCalls {
             variants.addAll(getVariantsInStudy(study, coreQuery));
         }
 
-        return variants;
+        return toCoreVariants(variants);
     }
 
+    public List<CoreVariant> toCoreVariants(List<VariantResponse> ocgaVariants) {
+        List<CoreVariant> coreVariants = new LinkedList<>();
+        for (VariantResponse vr : ocgaVariants) {
+            CoreVariant cv = new CoreVariant(vr.getChromosome(), vr.getStart(), vr.getEnd(), vr.getId(), vr.getAlternate(),
+                    vr.getReference(), vr.getStrand(), vr.getType());
+            coreVariants.add(cv);
+        }
+        return coreVariants;
+    }
 }

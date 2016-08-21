@@ -6,7 +6,7 @@ import au.org.garvan.vsal.beacon.entity.Reference;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.List;
 
-@XmlRootElement(name = "corequery")
+@XmlRootElement(name = "CoreQuery")
 public class CoreQuery {
 
     private Chromosome chromosome;

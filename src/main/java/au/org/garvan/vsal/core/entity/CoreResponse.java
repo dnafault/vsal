@@ -1,31 +1,28 @@
 package au.org.garvan.vsal.core.entity;
 
 import au.org.garvan.vsal.beacon.entity.Error;
-import au.org.garvan.vsal.ocga.entity.VariantResponse;
-
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.List;
 
 /**
  * CoreResponse.
  */
-@XmlRootElement(name = "coreResponse")
+@XmlRootElement(name = "CoreResponse")
 public class CoreResponse {
 
     private CoreQuery coreQuery;
-    private List<VariantResponse> variants;
+    private List<CoreVariant> variants;
     private Error error;
 
     public CoreResponse() {
         // needed for JAXB
     }
 
-    public CoreResponse(CoreQuery coreQuery, List<VariantResponse> variants, Error error) {
+    public CoreResponse(CoreQuery coreQuery, List<CoreVariant> variants, Error error) {
         this.coreQuery = coreQuery;
         this.variants = variants;
         this.error = error;
     }
-
 
     public CoreQuery getCoreQuery() {
         return coreQuery;
@@ -35,11 +32,11 @@ public class CoreResponse {
         this.coreQuery = coreQuery;
     }
 
-    public List<VariantResponse> getVariants() {
+    public List<CoreVariant> getVariants() {
         return variants;
     }
 
-    public void setVariants(List<VariantResponse> variants) {
+    public void setVariants(List<CoreVariant> variants) {
         this.variants = variants;
     }
 

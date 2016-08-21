@@ -1,13 +1,9 @@
 package au.org.garvan.vsal.core.service;
 
-//import au.org.garvan.vsal.beacon.entity.*;
 import au.org.garvan.vsal.beacon.entity.Error;
 import au.org.garvan.vsal.beacon.rest.OcgaCalls;
-//import au.org.garvan.vsal.beacon.util.QueryUtils;
-
 import au.org.garvan.vsal.core.entity.CoreQuery;
 import au.org.garvan.vsal.core.entity.CoreResponse;
-//import au.org.garvan.vsal.core.util.CoreQueryUtils;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.RequestScoped;
