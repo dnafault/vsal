@@ -53,7 +53,6 @@ public class CoreQueryUtils {
         chromMapping.put(Reference.HG18, "NCBI36");
         chromMapping.put(Reference.HG17, "NCBI35");
         chromMapping.put(Reference.HG16, "NCBI34");
-
     }
 
     /**
@@ -72,7 +71,6 @@ public class CoreQueryUtils {
                 }
             }
         }
-
         return null;
     }
 

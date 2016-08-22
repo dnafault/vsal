@@ -95,10 +95,8 @@ public class OcgaCalls {
             if (queryResult.getStatus() != 200) {
                 throw new IOException("REST status: " + queryResult.getStatus());
             }
-//            // JAXB Unmarshalling - works well with Login request
-//            OpenCBLoginQueryResponse ocgaResponse = queryResult.getEntity(OpenCBLoginQueryResponse.class);
 
-//            // Gson Unmarshalling - works well with any request
+            // Gson Unmarshalling - works well with any request
             GsonBuilder builder = new GsonBuilder();
             Gson gson = builder.serializeNulls().create();
             Type type = new TypeToken<QueryResponse<LoginResponse>>(){}.getType();
@@ -190,17 +188,16 @@ public class OcgaCalls {
 
     private List<VariantResponse> getVariantsInStudy(Integer studyId, CoreQuery query)
             throws IOException {
-        String region;
         String url = baseurl + "/studies/" + studyId + "/variants";
-        if (query.getPositionStart() != null && query.getPositionEnd() != null) { // 1-based VCF positions
-            region  = query.getChromosome().toString() + ":" + query.getPositionStart() + "-" + query.getPositionEnd();
-        } else {
-            region  = query.getChromosome().toString();
-        }
 
         MultivaluedMap<String,String> queryParams = new MultivaluedMapImpl();
         queryParams.add("sid", sessionId);
-        queryParams.add("region", region);
+        if (query.getChromosome() != null && query.getPositionStart() != null && query.getPositionEnd() != null) { // 1-based VCF positions
+            queryParams.add("region", query.getChromosome().toString() +
+                    ":" + query.getPositionStart() + "-" + query.getPositionEnd());
+        } else if (query.getChromosome() != null) {
+            queryParams.add("chromosome", query.getChromosome().toString());
+        }
         if (query.getType() != null) {
             queryParams.add("type", query.getType().toString());
         }
@@ -215,6 +212,14 @@ public class OcgaCalls {
         }
         if (query.getSkip() != null) {
             queryParams.add("skip", query.getSkip().toString());
+        }
+        // addAll() is not implemented at com.sun.jersey.core.util.MultivaluedMapImpl, hence ugly loops
+        // (and yes - returned Lists are never null)
+        for (String s : query.getGenes()) {
+            queryParams.add("gene", s);
+        }
+        for (String s : query.getRsIDs()) {
+            queryParams.add("ids", s);
         }
 
         ClientResponse queryResult = ocgaRestGetCall(url,queryParams);
@@ -258,7 +263,9 @@ public class OcgaCalls {
     public List<CoreVariant> toCoreVariants(List<VariantResponse> ocgaVariants) {
         List<CoreVariant> coreVariants = new LinkedList<>();
         for (VariantResponse vr : ocgaVariants) {
-            CoreVariant cv = new CoreVariant(vr.getChromosome(), vr.getStart(), vr.getEnd(), vr.getId(), vr.getAlternate(),
+            String rsId = vr.getId();
+            CoreVariant cv = new CoreVariant(vr.getChromosome(), vr.getStart(), vr.getEnd(),
+                    (rsId != null && rsId.startsWith("rs")) ? rsId : null, vr.getAlternate(),
                     vr.getReference(), vr.getStrand(), vr.getType());
             coreVariants.add(cv);
         }

@@ -28,16 +28,15 @@ public class CoreResource {
     private CoreService service;
 
     @GET
-    public CoreResponse query(@QueryParam("chrom")   String chromosome,
+    public CoreResponse query(@QueryParam("chromosome") String chromosome,
                               @QueryParam("positionStart") Integer positionStart,
-                              @QueryParam("positionEnd")   Integer positionEnd,
-                              @QueryParam("refAllele")  String refAllele,
-                              @QueryParam("altAllele")  String altAllele,
+                              @QueryParam("positionEnd") Integer positionEnd,
+                              @QueryParam("refAllele") String refAllele,
+                              @QueryParam("altAllele") String altAllele,
                               @QueryParam("dataset") String dataset,
-                              //TODO: -> List<String> genes/rsIDs
-                              @QueryParam("genes")  String genes,
-                              @QueryParam("rsIDs")  String rsIDs,
-                              @QueryParam("type")  String type,
+                              @QueryParam("genes") List<String> genes,
+                              @QueryParam("rsIDs") List<String> rsIDs,
+                              @QueryParam("type") String type,
                               @QueryParam("limit") Integer limit,
                               @QueryParam("skip") Integer skip,
 
@@ -56,13 +55,8 @@ public class CoreResource {
                               @QueryParam("glcStart") Float glcStart,
                               @QueryParam("glcEnd") Float glcEnd) {
 
-        List<String> genesList = new ArrayList<>();
-        List<String> rsIDsList = new ArrayList<>();
-        genesList.add(genes);
-        rsIDsList.add(rsIDs);
-
         CoreQuery coreQuery = CoreQueryUtils.getCoreQuery(chromosome, positionStart, positionEnd, refAllele,
-                altAllele, "hg19", dataset, genesList, rsIDsList, type, limit, skip,
+                altAllele, "hg19", dataset, genes, rsIDs, type, limit, skip,
                 gender, yobStart, yobEnd, sbpStart, sbpEnd, heightStart, heightEnd, weightStart, weightEnd,
                 abdCircStart, abdCircEnd, glcStart, glcEnd);
 
