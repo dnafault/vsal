@@ -18,7 +18,7 @@ public class VariantResponse {
     private Map<String,String> hgvs;
     //    private VariantAnnotation annotation
 
-    private String id; // supposed to be rsID, but if null, it's filled in by ocga-generated trash
+    private String id; // supposed to be dbSNP ID, but if null, it's filled in by ocga-generated trash
     private int end;
     private int start;
     private String chromosome;

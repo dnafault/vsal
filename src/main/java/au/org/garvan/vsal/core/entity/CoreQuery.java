@@ -16,7 +16,7 @@ public class CoreQuery {
     private String altAllele;
     private DatasetID datasetId;
     private List<String> genes;
-    private List<String> rsIDs;
+    private List<String> dbSNP;
     private VariantType type;
     private Reference reference;
     private Integer limit;
@@ -42,7 +42,7 @@ public class CoreQuery {
     }
 
     public CoreQuery(Chromosome chromosome, Integer positionStart, Integer positionEnd, String refAllele, String altAllele,
-                     DatasetID datasetId, List<String> genes, List<String> rsIDs, VariantType type, Reference reference,
+                     DatasetID datasetId, List<String> genes, List<String> dbSNP, VariantType type, Reference reference,
                      Integer limit, Integer skip, Gender gender, Integer yobStart, Integer yobEnd, Integer sbpStart,
                      Integer sbpEnd, Float heightStart, Float heightEnd, Float weightStart, Float weightEnd,
                      Integer abdCircStart, Integer abdCircEnd, Float glcStart, Float glcEnd) {
@@ -53,7 +53,7 @@ public class CoreQuery {
         this.altAllele = altAllele;
         this.datasetId = datasetId;
         this.genes = genes;
-        this.rsIDs = rsIDs;
+        this.dbSNP = dbSNP;
         this.type = type;
         this.reference = reference;
         this.limit = limit;
@@ -129,12 +129,12 @@ public class CoreQuery {
         this.genes = genes;
     }
 
-    public List<String> getRsIDs() {
-        return rsIDs;
+    public List<String> getDbSNP() {
+        return dbSNP;
     }
 
-    public void setRsIDs(List<String> rsIDs) {
-        this.rsIDs = rsIDs;
+    public void setDbSNP(List<String> dbSNP) {
+        this.dbSNP = dbSNP;
     }
 
     public VariantType getType() {

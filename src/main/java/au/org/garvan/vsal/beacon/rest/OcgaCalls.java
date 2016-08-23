@@ -218,7 +218,7 @@ public class OcgaCalls {
         for (String s : query.getGenes()) {
             queryParams.add("gene", s);
         }
-        for (String s : query.getRsIDs()) {
+        for (String s : query.getDbSNP()) {
             queryParams.add("ids", s);
         }
 
@@ -263,9 +263,9 @@ public class OcgaCalls {
     public List<CoreVariant> toCoreVariants(List<VariantResponse> ocgaVariants) {
         List<CoreVariant> coreVariants = new LinkedList<>();
         for (VariantResponse vr : ocgaVariants) {
-            String rsId = vr.getId();
+            String dbSNP = vr.getId();
             CoreVariant cv = new CoreVariant(vr.getChromosome(), vr.getStart(), vr.getEnd(),
-                    (rsId != null && rsId.startsWith("rs")) ? rsId : null, vr.getAlternate(),
+                    (dbSNP != null && dbSNP.startsWith("rs")) ? dbSNP : null, vr.getAlternate(),
                     vr.getReference(), vr.getStrand(), vr.getType());
             coreVariants.add(cv);
         }

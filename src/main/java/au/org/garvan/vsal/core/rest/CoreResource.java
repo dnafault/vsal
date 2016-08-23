@@ -35,7 +35,7 @@ public class CoreResource {
                               @QueryParam("altAllele") String altAllele,
                               @QueryParam("dataset") String dataset,
                               @QueryParam("genes") List<String> genes,
-                              @QueryParam("rsIDs") List<String> rsIDs,
+                              @QueryParam("dbSNP") List<String> dbSNP,
                               @QueryParam("type") String type,
                               @QueryParam("limit") Integer limit,
                               @QueryParam("skip") Integer skip,
@@ -56,7 +56,7 @@ public class CoreResource {
                               @QueryParam("glcEnd") Float glcEnd) {
 
         CoreQuery coreQuery = CoreQueryUtils.getCoreQuery(chromosome, positionStart, positionEnd, refAllele,
-                altAllele, "hg19", dataset, genes, rsIDs, type, limit, skip,
+                altAllele, "hg19", dataset, genes, dbSNP, type, limit, skip,
                 gender, yobStart, yobEnd, sbpStart, sbpEnd, heightStart, heightEnd, weightStart, weightEnd,
                 abdCircStart, abdCircEnd, glcStart, glcEnd);
 

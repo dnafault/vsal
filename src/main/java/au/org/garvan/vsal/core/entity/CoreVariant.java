@@ -8,7 +8,7 @@ public class CoreVariant {
     private String chromosome;
     private int start;
     private int end;
-    private String rsId;
+    private String dbSNP;
 
     private String alternate;
     private String reference;
@@ -19,11 +19,11 @@ public class CoreVariant {
         // needed for JAXB
     }
 
-    public CoreVariant(String chromosome, int start, int end, String rsId, String alternate, String reference, String strand, String type) {
+    public CoreVariant(String chromosome, int start, int end, String dbSNP, String alternate, String reference, String strand, String type) {
         this.chromosome = chromosome;
         this.start = start;
         this.end = end;
-        this.rsId = rsId;
+        this.dbSNP = dbSNP;
         this.alternate = alternate;
         this.reference = reference;
         this.strand = strand;
@@ -54,12 +54,12 @@ public class CoreVariant {
         this.end = end;
     }
 
-    public String getRsId() {
-        return rsId;
+    public String getDbSNP() {
+        return dbSNP;
     }
 
-    public void setRsId(String rsId) {
-        this.rsId = rsId;
+    public void setDbSNP(String dbSNP) {
+        this.dbSNP = dbSNP;
     }
 
     public String getAlternate() {

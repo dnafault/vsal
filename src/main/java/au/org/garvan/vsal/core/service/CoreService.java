@@ -25,8 +25,8 @@ public class CoreService {
     public CoreResponse query(CoreQuery q) {
 
         // required parameters are missing
-        if (q.getChromosome() == null && q.getGenes().isEmpty() && q.getRsIDs().isEmpty()) {
-            Error errorResource = new Error("Incomplete Query", "Chromosome or Gene or rsID is required.");
+        if (q.getChromosome() == null && q.getGenes().isEmpty() && q.getDbSNP().isEmpty()) {
+            Error errorResource = new Error("Incomplete Query", "Chromosome or Gene or dbSNP ID is required.");
             return new CoreResponse(q, null, errorResource);
         }
 

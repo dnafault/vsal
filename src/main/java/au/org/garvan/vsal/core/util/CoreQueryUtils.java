@@ -138,7 +138,7 @@ public class CoreQueryUtils {
      * Obtains a canonical query object.
      */
     public static CoreQuery getCoreQuery(String chromosome, Integer position_start, Integer position_end, String ref_allele,
-                                         String alt_allele, String ref, String dataset, List<String> genes, List<String> rsIDs,
+                                         String alt_allele, String ref, String dataset, List<String> genes, List<String> dbSNP,
                                          String type, Integer limit, Integer skip,
                                          // Clinical parameters
                                          String gender, Integer yobStart, Integer yobEnd, Integer sbpStart, Integer sbpEnd,
@@ -153,7 +153,7 @@ public class CoreQueryUtils {
         VariantType variantType = VariantType.fromString(type);
         Gender g = Gender.fromString(gender);
 
-        return new CoreQuery(c, position_start, position_end, refAllele, altAllele, datasetId, genes, rsIDs, variantType,
+        return new CoreQuery(c, position_start, position_end, refAllele, altAllele, datasetId, genes, dbSNP, variantType,
                 r, limit, skip, g, yobStart, yobEnd, sbpStart, sbpEnd, heightStart, heightEnd, weightStart, weightEnd,
                 abdCircStart, abdCircEnd, glcStart, glcEnd);
     }
