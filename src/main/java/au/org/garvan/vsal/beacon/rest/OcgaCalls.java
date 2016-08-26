@@ -6,7 +6,9 @@ package au.org.garvan.vsal.beacon.rest;
 import au.org.garvan.vsal.beacon.entity.Query;
 import au.org.garvan.vsal.core.entity.CoreQuery;
 import au.org.garvan.vsal.core.entity.CoreVariant;
-import au.org.garvan.vsal.ocga.entity.*;
+import au.org.garvan.vsal.ocga.entity.LoginResponse;
+import au.org.garvan.vsal.ocga.entity.QueryResponse;
+import au.org.garvan.vsal.ocga.entity.VariantResponse;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import com.sun.jersey.api.client.Client;
@@ -18,12 +20,11 @@ import javax.ws.rs.core.MultivaluedMap;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
-
-import java.lang.reflect.Type;
 
 /**
  * OpenCGA Rest Calls
@@ -35,7 +36,7 @@ public class OcgaCalls {
 
     private static String sessionId = null;
     private static String baseurl = null;
-    private static String propFileName = "ocga.properties";
+    private static String propFileName = "vsal.properties";
     private static Properties prop = null;
 
     public int ocgaBeaconQuery(Query query)
@@ -186,7 +187,7 @@ public class OcgaCalls {
         return numResults;
     }
 
-    private List<VariantResponse> getVariantsInStudy(Integer studyId, CoreQuery query)
+    private List<VariantResponse> getVariantsInStudy(Integer studyId, CoreQuery query, List<String> samples)
             throws IOException {
         String url = baseurl + "/studies/" + studyId + "/variants";
 
@@ -221,6 +222,11 @@ public class OcgaCalls {
         for (String s : query.getDbSNP()) {
             queryParams.add("ids", s);
         }
+        if (samples != null && !samples.isEmpty()) {
+            for (String s : samples) {
+                queryParams.add("returnedSamples", s);
+            }
+        }
 
         ClientResponse queryResult = ocgaRestGetCall(url,queryParams);
         if (queryResult.getStatus() != 200) {
@@ -246,15 +252,11 @@ public class OcgaCalls {
             ocgaLogin();
         }
 
-        if (samples != null && !samples.isEmpty()) {
-            //TODO: filtering by samples
-        }
-
         List<Integer> studies = getStudyIds();
         List<VariantResponse> variants = new LinkedList<>();
 
         for (Integer study : studies) {
-            variants.addAll(getVariantsInStudy(study, coreQuery));
+            variants.addAll(getVariantsInStudy(study, coreQuery, samples));
         }
 
         return toCoreVariants(variants);

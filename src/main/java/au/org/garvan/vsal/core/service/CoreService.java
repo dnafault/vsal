@@ -4,6 +4,7 @@ import au.org.garvan.vsal.beacon.entity.Error;
 import au.org.garvan.vsal.beacon.rest.OcgaCalls;
 import au.org.garvan.vsal.core.entity.CoreQuery;
 import au.org.garvan.vsal.core.entity.CoreResponse;
+import au.org.garvan.vsal.core.rest.ClinDataCalls;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.RequestScoped;
@@ -31,12 +32,17 @@ public class CoreService {
         }
 
         // call to ClinData
-        List<String> samples=null;
+        List<String> samples = null;
         if ( q.getGender() != null || q.getYobStart() != null || q.getYobEnd() != null ||
              q.getSbpStart() != null || q.getSbpEnd() != null || q.getHeightStart() != null || q.getHeightEnd() != null ||
              q.getWeightStart() != null || q.getWeightEnd() != null || q.getAbdCircStart() != null ||
              q.getAbdCircEnd() != null || q.getGlcStart() != null || q.getGlcEnd() != null ) {
-            //  TODO:   samples = // Rest call to ClinData
+            try {
+                samples = new ClinDataCalls().getClinDataSamples(q);
+            } catch (Exception e) {
+                Error errorResource = new Error("Runtime exception", e.getMessage());
+                return new CoreResponse(q, null, errorResource);
+            }
         }
 
         // call to OpenCGA
