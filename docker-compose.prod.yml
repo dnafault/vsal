@@ -1,0 +1,62 @@
+#version: '1'
+
+# Prod
+vsal.prod:
+  container_name: vsal.prod
+  image: vsal
+  links:
+    - clindata.prod:clindata
+    - ocga.prod:ocga
+  ports:
+    - 8088:8080
+
+clindata.prod:
+  container_name: clindata.prod
+  image: clindata
+  links:
+    - clindb.prod:clindb
+
+clindb.prod:
+  container_name: clindb.prod
+  image: clindb
+
+ocga.prod:
+  container_name: ocga.prod
+  image: ocga.deploy
+  volumes:
+    - /data/prod/catalog:/data/catalog
+    - /data/prod/db:/data/db
+
+# Prod debug
+vsal.prod.debug:
+  container_name: vsal.prod.debug
+  image: vsal
+  links:
+    - clindata.prod.debug:clindata
+    - ocga.prod.debug:ocga
+  ports:
+    - 8088:8080
+
+clindata.prod.debug:
+  container_name: clindata.prod.debug
+  image: clindata
+  links:
+    - clindb.prod.debug:clindb
+  ports:
+    - 4080:8080
+
+clindb.prod.debug:
+  container_name: clindb.prod.debug
+  image: clindb
+  ports:
+    - 4306:3306
+
+ocga.prod.debug:
+  container_name: ocga.prod.debug
+  image: ocga.deploy
+  volumes:
+    - /data/prod/catalog:/data/catalog
+    - /data/prod/db:/data/db
+  ports:
+    - 4000:8080
+    - 28017:27017
