@@ -1,0 +1,26 @@
+#version: '1'
+vsal.uat:
+  container_name: vsal.uat
+  image: vsal
+  links:
+    - clindata.uat:clindata
+    - ocga.uat:ocga
+  ports:
+    - 8080:8080
+
+clindata.uat:
+  container_name: clindata.uat
+  image: clindata
+  links:
+    - clindb.uat:clindb
+
+clindb.uat:
+  container_name: clindb.uat
+  image: clindb
+
+ocga.uat:
+  container_name: ocga.uat
+  image: ocga.deploy
+  volumes:
+    - /data/uat/catalog:/data/catalog
+    - /data/uat/db:/data/db
