@@ -140,6 +140,11 @@ public class CoreQueryUtils {
     public static CoreQuery getCoreQuery(String chromosome, Integer position_start, Integer position_end, String ref_allele,
                                          String alt_allele, String ref, String dataset, List<String> genes, List<String> dbSNP,
                                          String type, Integer limit, Integer skip,
+                                         // Stat
+                                         String maf, String popMaf, String popAltFrq, String popRefFrq,
+                                         // Annotations
+                                         String annotCT, String annotHPO, String annotGO, String annotXref, String annotBiotype,
+                                         String polyphen, String sift, String conservationScore,
                                          // Clinical parameters
                                          String gender, Integer yobStart, Integer yobEnd, Integer sbpStart, Integer sbpEnd,
                                          Float heightStart, Float heightEnd, Float weightStart, Float weightEnd,
@@ -154,7 +159,8 @@ public class CoreQueryUtils {
         Gender g = Gender.fromString(gender);
 
         return new CoreQuery(c, position_start, position_end, refAllele, altAllele, datasetId, genes, dbSNP, variantType,
-                r, limit, skip, g, yobStart, yobEnd, sbpStart, sbpEnd, heightStart, heightEnd, weightStart, weightEnd,
+                r, limit, skip, maf, popMaf, popAltFrq, popRefFrq, annotCT, annotHPO, annotGO, annotXref, annotBiotype, polyphen,
+                sift, conservationScore, g, yobStart, yobEnd, sbpStart, sbpEnd, heightStart, heightEnd, weightStart, weightEnd,
                 abdCircStart, abdCircEnd, glcStart, glcEnd);
     }
 

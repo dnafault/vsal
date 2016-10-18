@@ -189,7 +189,8 @@ public class OcgaCalls {
 
     private List<VariantResponse> getVariantsInStudy(Integer studyId, CoreQuery query, List<String> samples)
             throws IOException {
-        String url = baseurl + "/studies/" + studyId + "/variants";
+        String study = studyId.toString();
+        String url = baseurl + "/studies/" + study + "/variants";
 
         MultivaluedMap<String,String> queryParams = new MultivaluedMapImpl();
         queryParams.add("sid", sessionId);
@@ -221,6 +222,43 @@ public class OcgaCalls {
         }
         for (String s : query.getDbSNP()) {
             queryParams.add("ids", s);
+        }
+
+        if (query.getMaf() != null && !query.getMaf().isEmpty()) {
+            queryParams.add("maf", "ALL" + query.getMaf());
+        }
+        if (query.getPopMaf() != null && !query.getPopMaf().isEmpty()) {
+            queryParams.add("annot-population-maf", study + ":ALL" + query.getPopMaf());
+        }
+        if (query.getPopAltFrq() != null && !query.getPopAltFrq().isEmpty()) {
+            queryParams.add("alternate_frequency", study + ":ALL" + query.getPopAltFrq());
+        }
+        if (query.getPopRefFrq() != null && !query.getPopRefFrq().isEmpty()) {
+            queryParams.add("reference_frequency", study + ":ALL" + query.getPopRefFrq());
+        }
+        if (query.getAnnotCT() != null && !query.getAnnotCT().isEmpty()) {
+            queryParams.add("annot-ct", query.getAnnotCT());
+        }
+        if (query.getAnnotHPO() != null && !query.getAnnotHPO().isEmpty()) {
+            queryParams.add("annot-hpo", query.getAnnotHPO());
+        }
+        if (query.getAnnotGO() != null && !query.getAnnotGO().isEmpty()) {
+            queryParams.add("annot-go", query.getAnnotGO());
+        }
+        if (query.getAnnotXref() != null && !query.getAnnotXref().isEmpty()) {
+            queryParams.add("annot-xref", query.getAnnotXref());
+        }
+        if (query.getAnnotBiotype() != null && !query.getAnnotBiotype().isEmpty()) {
+            queryParams.add("annot-biotype", query.getAnnotBiotype());
+        }
+        if (query.getPolyphen() != null && !query.getPolyphen().isEmpty()) {
+            queryParams.add("polyphen", query.getPolyphen());
+        }
+        if (query.getSift() != null && !query.getSift().isEmpty()) {
+            queryParams.add("sift", query.getSift());
+        }
+        if (query.getConservationScore() != null && !query.getConservationScore().isEmpty()) {
+            queryParams.add("conservation", query.getConservationScore());
         }
         if (samples != null && !samples.isEmpty()) {
             for (String s : samples) {

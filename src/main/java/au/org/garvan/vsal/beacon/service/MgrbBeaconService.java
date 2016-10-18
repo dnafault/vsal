@@ -55,13 +55,13 @@ public class MgrbBeaconService implements BeaconService {
     @PostConstruct
     public void init() {
         this.dataset = new Dataset("mgrb", "MGRB", "hg19", null, null);
-        this.query = new Query("C/G", Chromosome.CHR1, 52065L, Reference.HG19, "mgrb");
+        this.query = new Query("T", Chromosome.CHR1, 10491L, Reference.HG19, "mgrb");
         this.queries = new ArrayList<>();
         this.queries.add(query);
         this.datasets = new ArrayList<>();
         this.datasets.add(dataset);
         this.beacon = new Beacon("mgrb", "MGRB Beacon", "Garvan Institute of Medical Research", "MGRB Beacon", "0.2",
-                "https://www.garvan.org.au", "beacon@garvan.org.au", "", datasets, queries);
+                "https://sgc.garvan.org.au/mgrb/beacon", "beacon@garvan.org.au", "", datasets, queries);
     }
 
     @Override

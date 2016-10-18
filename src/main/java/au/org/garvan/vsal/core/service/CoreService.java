@@ -40,7 +40,7 @@ public class CoreService {
             try {
                 samples = new ClinDataCalls().getClinDataSamples(q);
             } catch (Exception e) {
-                Error errorResource = new Error("Runtime exception", e.getMessage());
+                Error errorResource = new Error("ClinData Runtime Exception", e.getMessage());
                 return new CoreResponse(q, null, errorResource);
             }
         }
@@ -51,7 +51,7 @@ public class CoreService {
         try {
             return new CoreResponse(q, ocgac.ocgaFindQuery(q, samples), null);
         } catch (Exception e) {
-            Error errorResource = new Error("Runtime exception", e.getMessage());
+            Error errorResource = new Error("VS Runtime Exception", e.getMessage());
             return new CoreResponse(q, null, errorResource);
         }
     }

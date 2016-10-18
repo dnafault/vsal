@@ -22,6 +22,23 @@ public class CoreQuery {
     private Integer limit;
     private Integer skip;
 
+    // Stat
+    private String maf;
+    private String popMaf;
+    private String popAltFrq;
+    private String popRefFrq;
+
+    // Annotations
+    private String annotCT;
+    private String annotHPO;
+    private String annotGO;
+    private String annotXref;
+    private String annotBiotype;
+
+    private String polyphen;
+    private String sift;
+    private String conservationScore;
+
     // Clinical data
     private Gender gender;
     private Integer yobStart;
@@ -43,9 +60,11 @@ public class CoreQuery {
 
     public CoreQuery(Chromosome chromosome, Integer positionStart, Integer positionEnd, String refAllele, String altAllele,
                      DatasetID datasetId, List<String> genes, List<String> dbSNP, VariantType type, Reference reference,
-                     Integer limit, Integer skip, Gender gender, Integer yobStart, Integer yobEnd, Integer sbpStart,
-                     Integer sbpEnd, Float heightStart, Float heightEnd, Float weightStart, Float weightEnd,
-                     Integer abdCircStart, Integer abdCircEnd, Float glcStart, Float glcEnd) {
+                     Integer limit, Integer skip, String maf, String popMaf, String popAltFrq, String popRefFrq,
+                     String annotCT, String annotHPO, String annotGO, String annotXref, String annotBiotype, String polyphen,
+                     String sift, String conservationScore, Gender gender, Integer yobStart, Integer yobEnd, Integer sbpStart,
+                     Integer sbpEnd, Float heightStart, Float heightEnd, Float weightStart, Float weightEnd, Integer abdCircStart,
+                     Integer abdCircEnd, Float glcStart, Float glcEnd) {
         this.chromosome = chromosome;
         this.positionStart = positionStart;
         this.positionEnd = positionEnd;
@@ -58,6 +77,18 @@ public class CoreQuery {
         this.reference = reference;
         this.limit = limit;
         this.skip = skip;
+        this.maf = maf;
+        this.popMaf = popMaf;
+        this.popAltFrq = popAltFrq;
+        this.popRefFrq = popRefFrq;
+        this.annotCT = annotCT;
+        this.annotHPO = annotHPO;
+        this.annotGO = annotGO;
+        this.annotXref = annotXref;
+        this.annotBiotype = annotBiotype;
+        this.polyphen = polyphen;
+        this.sift = sift;
+        this.conservationScore = conservationScore;
         this.gender = gender;
         this.yobStart = yobStart;
         this.yobEnd = yobEnd;
@@ -167,6 +198,102 @@ public class CoreQuery {
 
     public void setSkip(Integer skip) {
         this.skip = skip;
+    }
+
+    public String getMaf() {
+        return maf;
+    }
+
+    public void setMaf(String maf) {
+        this.maf = maf;
+    }
+
+    public String getPopMaf() {
+        return popMaf;
+    }
+
+    public void setPopMaf(String popMaf) {
+        this.popMaf = popMaf;
+    }
+
+    public String getPopAltFrq() {
+        return popAltFrq;
+    }
+
+    public void setPopAltFrq(String popAltFrq) {
+        this.popAltFrq = popAltFrq;
+    }
+
+    public String getPopRefFrq() {
+        return popRefFrq;
+    }
+
+    public void setPopRefFrq(String popRefFrq) {
+        this.popRefFrq = popRefFrq;
+    }
+
+    public String getAnnotCT() {
+        return annotCT;
+    }
+
+    public void setAnnotCT(String annotCT) {
+        this.annotCT = annotCT;
+    }
+
+    public String getAnnotHPO() {
+        return annotHPO;
+    }
+
+    public void setAnnotHPO(String annotHPO) {
+        this.annotHPO = annotHPO;
+    }
+
+    public String getAnnotGO() {
+        return annotGO;
+    }
+
+    public void setAnnotGO(String annotGO) {
+        this.annotGO = annotGO;
+    }
+
+    public String getAnnotXref() {
+        return annotXref;
+    }
+
+    public void setAnnotXref(String annotXref) {
+        this.annotXref = annotXref;
+    }
+
+    public String getAnnotBiotype() {
+        return annotBiotype;
+    }
+
+    public void setAnnotBiotype(String annotBiotype) {
+        this.annotBiotype = annotBiotype;
+    }
+
+    public String getPolyphen() {
+        return polyphen;
+    }
+
+    public void setPolyphen(String polyphen) {
+        this.polyphen = polyphen;
+    }
+
+    public String getSift() {
+        return sift;
+    }
+
+    public void setSift(String sift) {
+        this.sift = sift;
+    }
+
+    public String getConservationScore() {
+        return conservationScore;
+    }
+
+    public void setConservationScore(String conservationScore) {
+        this.conservationScore = conservationScore;
     }
 
     public Gender getGender() {

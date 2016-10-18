@@ -40,6 +40,23 @@ public class CoreResource {
                               @QueryParam("limit") Integer limit,
                               @QueryParam("skip") Integer skip,
 
+                              // Stat
+                              @QueryParam("maf") String maf, // [<|>|<=|>=]{number}
+                              @QueryParam("populationMaf") String popMaf, // [<|>|<=|>=]{number}
+                              @QueryParam("populationAltFrequency") String popAltFrq, // [<|>|<=|>=]{number}
+                              @QueryParam("populationRefFrequency") String popRefFrq, // [<|>|<=|>=]{number}
+
+                              // Annotations
+                              @QueryParam("annotCT") String annotCT,
+                              @QueryParam("annotHPO") String annotHPO,
+                              @QueryParam("annotGO") String annotGO,
+                              @QueryParam("annotXref") String annotXref,
+                              @QueryParam("annotBiotype") String annotBiotype,
+
+                              @QueryParam("polyphen") String polyphen, // [<|>|<=|>=]{number} or [~=|=|]{description} e.g. <=0.9 , =benign
+                              @QueryParam("sift") String sift, // [<|>|<=|>=]{number} or [~=|=|]{description} e.g. >0.1 , ~=tolerant
+                              @QueryParam("conservationScore") String conservationScore, // {conservation_score}[<|>|<=|>=]{number} e.g. phastCons>0.5,phylop<0.1,gerp>0.1
+
                               // Clinical parameters
                               @QueryParam("gender") String gender,
                               @QueryParam("yobStart") Integer yobStart,
@@ -56,7 +73,9 @@ public class CoreResource {
                               @QueryParam("glcEnd") Float glcEnd) {
 
         CoreQuery coreQuery = CoreQueryUtils.getCoreQuery(chromosome, positionStart, positionEnd, refAllele,
-                altAllele, "hg19", dataset, genes, dbSNP, type, limit, skip,
+                altAllele, "hg19", dataset, genes, dbSNP, type, limit, skip, maf, popMaf, popAltFrq, popRefFrq,
+                annotCT, annotHPO, annotGO, annotXref, annotBiotype, polyphen, sift, conservationScore,
+                // Clinical
                 gender, yobStart, yobEnd, sbpStart, sbpEnd, heightStart, heightEnd, weightStart, weightEnd,
                 abdCircStart, abdCircEnd, glcStart, glcEnd);
 
