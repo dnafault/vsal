@@ -21,6 +21,7 @@ public class CoreQuery {
     private Reference reference;
     private Integer limit;
     private Integer skip;
+    private String count;
 
     // Stat
     private String maf;
@@ -60,7 +61,7 @@ public class CoreQuery {
 
     public CoreQuery(Chromosome chromosome, Integer positionStart, Integer positionEnd, String refAllele, String altAllele,
                      DatasetID datasetId, List<String> genes, List<String> dbSNP, VariantType type, Reference reference,
-                     Integer limit, Integer skip, String maf, String popMaf, String popAltFrq, String popRefFrq,
+                     Integer limit, Integer skip, String count, String maf, String popMaf, String popAltFrq, String popRefFrq,
                      String annotCT, String annotHPO, String annotGO, String annotXref, String annotBiotype, String polyphen,
                      String sift, String conservationScore, Gender gender, Integer yobStart, Integer yobEnd, Integer sbpStart,
                      Integer sbpEnd, Float heightStart, Float heightEnd, Float weightStart, Float weightEnd, Integer abdCircStart,
@@ -77,6 +78,7 @@ public class CoreQuery {
         this.reference = reference;
         this.limit = limit;
         this.skip = skip;
+        this.count = count;
         this.maf = maf;
         this.popMaf = popMaf;
         this.popAltFrq = popAltFrq;
@@ -198,6 +200,14 @@ public class CoreQuery {
 
     public void setSkip(Integer skip) {
         this.skip = skip;
+    }
+
+    public String getCount() {
+        return count;
+    }
+
+    public void setCount(String count) {
+        this.count = count;
     }
 
     public String getMaf() {

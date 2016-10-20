@@ -6,9 +6,7 @@ package au.org.garvan.vsal.beacon.rest;
 import au.org.garvan.vsal.beacon.entity.Query;
 import au.org.garvan.vsal.core.entity.CoreQuery;
 import au.org.garvan.vsal.core.entity.CoreVariant;
-import au.org.garvan.vsal.ocga.entity.LoginResponse;
-import au.org.garvan.vsal.ocga.entity.QueryResponse;
-import au.org.garvan.vsal.ocga.entity.VariantResponse;
+import au.org.garvan.vsal.ocga.entity.*;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import com.sun.jersey.api.client.Client;
@@ -194,6 +192,7 @@ public class OcgaCalls {
 
         MultivaluedMap<String,String> queryParams = new MultivaluedMapImpl();
         queryParams.add("sid", sessionId);
+//        queryParams.add("include", "blah");
         if (query.getChromosome() != null && query.getPositionStart() != null && query.getPositionEnd() != null) { // 1-based VCF positions
             queryParams.add("region", query.getChromosome().toString() +
                     ":" + query.getPositionStart() + "-" + query.getPositionEnd());
@@ -223,7 +222,6 @@ public class OcgaCalls {
         for (String s : query.getDbSNP()) {
             queryParams.add("ids", s);
         }
-
         if (query.getMaf() != null && !query.getMaf().isEmpty()) {
             queryParams.add("maf", "ALL" + query.getMaf());
         }
@@ -260,11 +258,11 @@ public class OcgaCalls {
         if (query.getConservationScore() != null && !query.getConservationScore().isEmpty()) {
             queryParams.add("conservation", query.getConservationScore());
         }
-        if (samples != null && !samples.isEmpty()) {
-            for (String s : samples) {
-                queryParams.add("returnedSamples", s);
-            }
-        }
+//        if (samples != null && !samples.isEmpty()) {
+//            for (String s : samples) {
+//                queryParams.add("returnedSamples", s);
+//            }
+//        }
 
         ClientResponse queryResult = ocgaRestGetCall(url,queryParams);
         if (queryResult.getStatus() != 200) {
@@ -304,9 +302,13 @@ public class OcgaCalls {
         List<CoreVariant> coreVariants = new LinkedList<>();
         for (VariantResponse vr : ocgaVariants) {
             String dbSNP = vr.getId();
+            List<VariantStats> stat = new LinkedList<>();
+            for (StudyEntry studyEntry : vr.getStudies()) {
+                stat.add(studyEntry.getStats().get("ALL"));
+            }
             CoreVariant cv = new CoreVariant(vr.getChromosome(), vr.getStart(), vr.getEnd(),
                     (dbSNP != null && dbSNP.startsWith("rs")) ? dbSNP : null, vr.getAlternate(),
-                    vr.getReference(), vr.getStrand(), vr.getType());
+                    vr.getReference(), vr.getStrand(), vr.getType(), stat);
             coreVariants.add(cv);
         }
         return coreVariants;

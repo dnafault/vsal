@@ -1,88 +1,120 @@
 package au.org.garvan.vsal.ocga.entity;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import java.util.Map;
 
 @XmlRootElement(name = "VariantStats")
 public class VariantStats {
 
-    private String chromosome;
-    private int position;
-    private String referenceAllele;
-    private String alternateAlleles;
-    private String variantType;
+    private String refAllele;
+    private String altAllele;
+
+    private int refAlleleCount;
+    private int altAlleleCount;
+
+    private int missingAlleles;
+    private int missingGenotypes;
+
+    private float altAlleleFreq;
+    private float refAlleleFreq;
+
     private float maf;
     private float mgf;
+
     private String mafAllele;
     private String mgfGenotype;
-    private int numMissingAlleles;
-    private int numMissingGenotypes;
-    private int numMendelErrors;
-    private float percentCasesDominant;
-    private float percentControlsDominant;
-    private float percentCasesRecessive;
-    private float percentControlsRecessive;
+
+    private String variantType;
+
+    private Map<String, Integer> genotypesCount;
+    private Map<String, Float> genotypesFreq;
 
     public VariantStats() {
         // needed for JAXB
     }
 
-    public VariantStats(String chromosome, int position, String referenceAllele, String alternateAlleles, String variantType, float maf, float mgf, String mafAllele, String mgfGenotype, int numMissingAlleles, int numMissingGenotypes, int numMendelErrors, float percentCasesDominant, float percentControlsDominant, float percentCasesRecessive, float percentControlsRecessive) {
-        this.chromosome = chromosome;
-        this.position = position;
-        this.referenceAllele = referenceAllele;
-        this.alternateAlleles = alternateAlleles;
-        this.variantType = variantType;
+    public VariantStats(String refAllele, String altAllele, int refAlleleCount, int altAlleleCount, int missingAlleles,
+                        int missingGenotypes, float altAlleleFreq, float refAlleleFreq, float maf, float mgf, String mafAllele,
+                        String mgfGenotype, String variantType, Map<String, Integer> genotypesCount, Map<String, Float> genotypesFreq) {
+        this.refAllele = refAllele;
+        this.altAllele = altAllele;
+        this.refAlleleCount = refAlleleCount;
+        this.altAlleleCount = altAlleleCount;
+        this.missingAlleles = missingAlleles;
+        this.missingGenotypes = missingGenotypes;
+        this.altAlleleFreq = altAlleleFreq;
+        this.refAlleleFreq = refAlleleFreq;
         this.maf = maf;
         this.mgf = mgf;
         this.mafAllele = mafAllele;
         this.mgfGenotype = mgfGenotype;
-        this.numMissingAlleles = numMissingAlleles;
-        this.numMissingGenotypes = numMissingGenotypes;
-        this.numMendelErrors = numMendelErrors;
-        this.percentCasesDominant = percentCasesDominant;
-        this.percentControlsDominant = percentControlsDominant;
-        this.percentCasesRecessive = percentCasesRecessive;
-        this.percentControlsRecessive = percentControlsRecessive;
-    }
-
-    public String getChromosome() {
-        return chromosome;
-    }
-
-    public void setChromosome(String chromosome) {
-        this.chromosome = chromosome;
-    }
-
-    public int getPosition() {
-        return position;
-    }
-
-    public void setPosition(int position) {
-        this.position = position;
-    }
-
-    public String getReferenceAllele() {
-        return referenceAllele;
-    }
-
-    public void setReferenceAllele(String referenceAllele) {
-        this.referenceAllele = referenceAllele;
-    }
-
-    public String getAlternateAlleles() {
-        return alternateAlleles;
-    }
-
-    public void setAlternateAlleles(String alternateAlleles) {
-        this.alternateAlleles = alternateAlleles;
-    }
-
-    public String getVariantType() {
-        return variantType;
-    }
-
-    public void setVariantType(String variantType) {
         this.variantType = variantType;
+        this.genotypesCount = genotypesCount;
+        this.genotypesFreq = genotypesFreq;
+    }
+
+    public String getRefAllele() {
+        return refAllele;
+    }
+
+    public void setRefAllele(String refAllele) {
+        this.refAllele = refAllele;
+    }
+
+    public String getAltAllele() {
+        return altAllele;
+    }
+
+    public void setAltAllele(String altAllele) {
+        this.altAllele = altAllele;
+    }
+
+    public int getRefAlleleCount() {
+        return refAlleleCount;
+    }
+
+    public void setRefAlleleCount(int refAlleleCount) {
+        this.refAlleleCount = refAlleleCount;
+    }
+
+    public int getAltAlleleCount() {
+        return altAlleleCount;
+    }
+
+    public void setAltAlleleCount(int altAlleleCount) {
+        this.altAlleleCount = altAlleleCount;
+    }
+
+    public int getMissingAlleles() {
+        return missingAlleles;
+    }
+
+    public void setMissingAlleles(int missingAlleles) {
+        this.missingAlleles = missingAlleles;
+    }
+
+    public int getMissingGenotypes() {
+        return missingGenotypes;
+    }
+
+    public void setMissingGenotypes(int missingGenotypes) {
+        this.missingGenotypes = missingGenotypes;
+    }
+
+    public float getAltAlleleFreq() {
+        return altAlleleFreq;
+    }
+
+    public void setAltAlleleFreq(float altAlleleFreq) {
+        this.altAlleleFreq = altAlleleFreq;
+    }
+
+    public float getRefAlleleFreq() {
+        return refAlleleFreq;
+    }
+
+    public void setRefAlleleFreq(float refAlleleFreq) {
+        this.refAlleleFreq = refAlleleFreq;
     }
 
     public float getMaf() {
@@ -117,59 +149,27 @@ public class VariantStats {
         this.mgfGenotype = mgfGenotype;
     }
 
-    public int getNumMissingAlleles() {
-        return numMissingAlleles;
+    public String getVariantType() {
+        return variantType;
     }
 
-    public void setNumMissingAlleles(int numMissingAlleles) {
-        this.numMissingAlleles = numMissingAlleles;
+    public void setVariantType(String variantType) {
+        this.variantType = variantType;
     }
 
-    public int getNumMissingGenotypes() {
-        return numMissingGenotypes;
+    public Map<String, Integer> getGenotypesCount() {
+        return genotypesCount;
     }
 
-    public void setNumMissingGenotypes(int numMissingGenotypes) {
-        this.numMissingGenotypes = numMissingGenotypes;
+    public void setGenotypesCount(Map<String, Integer> genotypesCount) {
+        this.genotypesCount = genotypesCount;
     }
 
-    public int getNumMendelErrors() {
-        return numMendelErrors;
+    public Map<String, Float> getGenotypesFreq() {
+        return genotypesFreq;
     }
 
-    public void setNumMendelErrors(int numMendelErrors) {
-        this.numMendelErrors = numMendelErrors;
-    }
-
-    public float getPercentCasesDominant() {
-        return percentCasesDominant;
-    }
-
-    public void setPercentCasesDominant(float percentCasesDominant) {
-        this.percentCasesDominant = percentCasesDominant;
-    }
-
-    public float getPercentControlsDominant() {
-        return percentControlsDominant;
-    }
-
-    public void setPercentControlsDominant(float percentControlsDominant) {
-        this.percentControlsDominant = percentControlsDominant;
-    }
-
-    public float getPercentCasesRecessive() {
-        return percentCasesRecessive;
-    }
-
-    public void setPercentCasesRecessive(float percentCasesRecessive) {
-        this.percentCasesRecessive = percentCasesRecessive;
-    }
-
-    public float getPercentControlsRecessive() {
-        return percentControlsRecessive;
-    }
-
-    public void setPercentControlsRecessive(float percentControlsRecessive) {
-        this.percentControlsRecessive = percentControlsRecessive;
+    public void setGenotypesFreq(Map<String, Float> genotypesFreq) {
+        this.genotypesFreq = genotypesFreq;
     }
 }

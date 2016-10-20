@@ -10,7 +10,7 @@ public class StudyEntry {
 
     private List<String> format;
     private List<FileEntry> files;
-    private List<LinkedList<String>> samplesData;
+//    private List<LinkedList<String>> samplesData;  // non-default GTs for all samples, lots of data we don't need, skip it
     private String studyId;
     private List<AlternateCoordinate> secondaryAlternates;
     private Map<String, VariantStats> stats;
@@ -19,10 +19,9 @@ public class StudyEntry {
         // needed for JAXB
     }
 
-    public StudyEntry(List<String> format, List<FileEntry> files, List<LinkedList<String>> samplesData, String studyId, List<AlternateCoordinate> secondaryAlternates, Map<String, VariantStats> stats) {
+    public StudyEntry(List<String> format, List<FileEntry> files, String studyId, List<AlternateCoordinate> secondaryAlternates, Map<String, VariantStats> stats) {
         this.format = format;
         this.files = files;
-        this.samplesData = samplesData;
         this.studyId = studyId;
         this.secondaryAlternates = secondaryAlternates;
         this.stats = stats;
@@ -42,14 +41,6 @@ public class StudyEntry {
 
     public void setFiles(List<FileEntry> files) {
         this.files = files;
-    }
-
-    public List<LinkedList<String>> getSamplesData() {
-        return samplesData;
-    }
-
-    public void setSamplesData(List<LinkedList<String>> samplesData) {
-        this.samplesData = samplesData;
     }
 
     public String getStudyId() {

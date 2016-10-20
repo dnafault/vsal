@@ -159,8 +159,8 @@ public class CoreQueryUtils {
         Gender g = Gender.fromString(gender);
 
         return new CoreQuery(c, position_start, position_end, refAllele, altAllele, datasetId, genes, dbSNP, variantType,
-                r, limit, skip, maf, popMaf, popAltFrq, popRefFrq, annotCT, annotHPO, annotGO, annotXref, annotBiotype, polyphen,
-                sift, conservationScore, g, yobStart, yobEnd, sbpStart, sbpEnd, heightStart, heightEnd, weightStart, weightEnd,
+                r, limit, skip, null, maf, popMaf, popAltFrq, popRefFrq, annotCT, annotHPO, annotGO, annotXref, annotBiotype,
+                polyphen, sift, conservationScore, g, yobStart, yobEnd, sbpStart, sbpEnd, heightStart, heightEnd, weightStart, weightEnd,
                 abdCircStart, abdCircEnd, glcStart, glcEnd);
     }
 

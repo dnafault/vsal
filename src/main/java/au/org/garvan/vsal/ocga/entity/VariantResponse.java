@@ -15,7 +15,7 @@ public class VariantResponse {
     private String strand;
     //    private StructuralVariation sv;
 //    private Map<String,List<String>> hgvs;
-    private Map<String,String> hgvs;
+//    private Map<String,String> hgvs;
     //    private VariantAnnotation annotation
 
     private String id; // supposed to be dbSNP ID, but if null, it's filled in by ocga-generated trash
@@ -28,14 +28,14 @@ public class VariantResponse {
         // needed for JAXB
     }
 
-    public VariantResponse(String type, String reference, List<String> names, List<StudyEntry> studies, String alternate, String strand, Map<String, String> hgvs, String id, int end, int start, String chromosome, int length) {
+    public VariantResponse(String type, String reference, List<String> names, List<StudyEntry> studies, String alternate,
+                           String strand, String id, int end, int start, String chromosome, int length) {
         this.type = type;
         this.reference = reference;
         this.names = names;
         this.studies = studies;
         this.alternate = alternate;
         this.strand = strand;
-        this.hgvs = hgvs;
         this.id = id;
         this.end = end;
         this.start = start;
@@ -89,14 +89,6 @@ public class VariantResponse {
 
     public void setStrand(String strand) {
         this.strand = strand;
-    }
-
-    public Map<String, String> getHgvs() {
-        return hgvs;
-    }
-
-    public void setHgvs(Map<String, String> hgvs) {
-        this.hgvs = hgvs;
     }
 
     public String getId() {
