@@ -28,7 +28,7 @@ public class CoreService {
         // required parameters are missing
         if (q.getChromosome() == null && q.getGenes().isEmpty() && q.getDbSNP().isEmpty()) {
             Error errorResource = new Error("Incomplete Query", "Chromosome or Gene or dbSNP ID is required.");
-            return new CoreResponse(q, null, errorResource);
+            return new CoreResponse(q, null, null, errorResource);
         }
 
         // call to ClinData
@@ -41,7 +41,7 @@ public class CoreService {
                 samples = new ClinDataCalls().getClinDataSamples(q);
             } catch (Exception e) {
                 Error errorResource = new Error("ClinData Runtime Exception", e.getMessage());
-                return new CoreResponse(q, null, errorResource);
+                return new CoreResponse(q, null, null, errorResource);
             }
         }
 
@@ -49,11 +49,14 @@ public class CoreService {
         OcgaCalls ocgac = new OcgaCalls();
 
         try {
-            return new CoreResponse(q, ocgac.ocgaFindQuery(q, samples), null);
+            List<Long> total = null;
+            if (q.getCount() != null && q.getCount()) {
+                total =  ocgac.ocgaCountVariants(q, samples);
+            }
+            return new CoreResponse(q, ocgac.ocgaFindVariants(q, samples), total, null);
         } catch (Exception e) {
             Error errorResource = new Error("VS Runtime Exception", e.getMessage());
-            return new CoreResponse(q, null, errorResource);
+            return new CoreResponse(q, null, null, errorResource);
         }
     }
-
 }

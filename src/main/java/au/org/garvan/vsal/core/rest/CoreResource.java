@@ -39,6 +39,7 @@ public class CoreResource {
                               @QueryParam("type") String type,
                               @QueryParam("limit") Integer limit,
                               @QueryParam("skip") Integer skip,
+                              @QueryParam("count") Boolean count,
 
                               // Stat
                               @QueryParam("maf") String maf, // [<|>|<=|>=]{number}
@@ -73,7 +74,7 @@ public class CoreResource {
                               @QueryParam("glcEnd") Float glcEnd) {
 
         CoreQuery coreQuery = CoreQueryUtils.getCoreQuery(chromosome, positionStart, positionEnd, refAllele,
-                altAllele, "hg19", dataset, genes, dbSNP, type, limit, skip, maf, popMaf, popAltFrq, popRefFrq,
+                altAllele, "hg19", dataset, genes, dbSNP, type, limit, skip, count, maf, popMaf, popAltFrq, popRefFrq,
                 annotCT, annotHPO, annotGO, annotXref, annotBiotype, polyphen, sift, conservationScore,
                 // Clinical
                 gender, yobStart, yobEnd, sbpStart, sbpEnd, heightStart, heightEnd, weightStart, weightEnd,

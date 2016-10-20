@@ -185,13 +185,16 @@ public class OcgaCalls {
         return numResults;
     }
 
-    private List<VariantResponse> getVariantsInStudy(Integer studyId, CoreQuery query, List<String> samples)
+    private String getVariantsInStudy(Integer studyId, CoreQuery query, List<String> samples, boolean count)
             throws IOException {
         String study = studyId.toString();
         String url = baseurl + "/studies/" + study + "/variants";
 
         MultivaluedMap<String,String> queryParams = new MultivaluedMapImpl();
         queryParams.add("sid", sessionId);
+        if (count) {
+            queryParams.add("count", "true");
+        }
 //        queryParams.add("include", "blah");
         if (query.getChromosome() != null && query.getPositionStart() != null && query.getPositionEnd() != null) { // 1-based VCF positions
             queryParams.add("region", query.getChromosome().toString() +
@@ -266,19 +269,13 @@ public class OcgaCalls {
 
         ClientResponse queryResult = ocgaRestGetCall(url,queryParams);
         if (queryResult.getStatus() != 200) {
-            throw new IOException("REST status: " + queryResult.getStatus());
+            throw new IOException("Ocga REST call status: " + queryResult.getStatus());
         }
 
-        // JAXB fails to parse Variant response, so we use Gson Unmarshalling.
-        GsonBuilder builder = new GsonBuilder();
-        Gson gson = builder.serializeNulls().create();
-        Type type = new TypeToken<QueryResponse<VariantResponse>>(){}.getType();
-        QueryResponse<VariantResponse> ocgaResponse = gson.fromJson(queryResult.getEntity(String.class), type);
-
-        return ocgaResponse.getResponse().get(0).getResult();
+        return queryResult.getEntity(String.class);
     }
 
-    public List<CoreVariant> ocgaFindQuery(CoreQuery coreQuery, List<String> samples)
+    public List<CoreVariant> ocgaFindVariants(CoreQuery coreQuery, List<String> samples)
             throws IOException {
         // dirty fast checks for static fields
         if (prop == null) {
@@ -292,7 +289,15 @@ public class OcgaCalls {
         List<VariantResponse> variants = new LinkedList<>();
 
         for (Integer study : studies) {
-            variants.addAll(getVariantsInStudy(study, coreQuery, samples));
+            String jsonVariants = getVariantsInStudy(study, coreQuery, samples, false);
+
+            // JAXB fails to parse Variant response, so use Gson Unmarshalling.
+            GsonBuilder builder = new GsonBuilder();
+            Gson gson = builder.serializeNulls().create();
+            Type type = new TypeToken<QueryResponse<VariantResponse>>(){}.getType();
+            QueryResponse<VariantResponse> ocgaResponse = gson.fromJson(jsonVariants, type);
+
+            variants.addAll(ocgaResponse.getResponse().get(0).getResult());
         }
 
         return toCoreVariants(variants);
@@ -312,5 +317,33 @@ public class OcgaCalls {
             coreVariants.add(cv);
         }
         return coreVariants;
+    }
+
+    public List<Long> ocgaCountVariants(CoreQuery coreQuery, List<String> samples)
+            throws IOException {
+        // dirty fast checks for static fields
+        if (prop == null) {
+            readConfig();
+        }
+        if (sessionId == null || sessionId.isEmpty() || baseurl == null) { // sync visibility between static fields
+            ocgaLogin();
+        }
+
+        List<Integer> studies = getStudyIds();
+        List<Long> count = new LinkedList<>();
+
+        for (Integer study : studies) {
+            String jsonVariants = getVariantsInStudy(study, coreQuery, samples, true);
+
+            // JAXB fails to parse Variant response, so use Gson Unmarshalling.
+            GsonBuilder builder = new GsonBuilder();
+            Gson gson = builder.serializeNulls().create();
+            Type type = new TypeToken<QueryResponse<Long>>(){}.getType();
+            QueryResponse<Long> ocgaResponse = gson.fromJson(jsonVariants, type);
+
+            count.addAll(ocgaResponse.getResponse().get(0).getResult());
+        }
+
+        return count;
     }
 }

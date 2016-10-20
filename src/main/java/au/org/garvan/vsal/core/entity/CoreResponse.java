@@ -12,15 +12,17 @@ public class CoreResponse {
 
     private CoreQuery coreQuery;
     private List<CoreVariant> variants;
+    private List<Long> total;
     private Error error;
 
     public CoreResponse() {
         // needed for JAXB
     }
 
-    public CoreResponse(CoreQuery coreQuery, List<CoreVariant> variants, Error error) {
+    public CoreResponse(CoreQuery coreQuery, List<CoreVariant> variants, List<Long> total, Error error) {
         this.coreQuery = coreQuery;
         this.variants = variants;
+        this.total = total;
         this.error = error;
     }
 
@@ -40,32 +42,19 @@ public class CoreResponse {
         this.variants = variants;
     }
 
+    public List<Long> getTotal() {
+        return total;
+    }
+
+    public void setTotal(List<Long> total) {
+        this.total = total;
+    }
+
     public Error getError() {
         return error;
     }
 
     public void setError(Error error) {
         this.error = error;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof CoreResponse)) return false;
-
-        CoreResponse that = (CoreResponse) o;
-
-        if (coreQuery != null ? !coreQuery.equals(that.coreQuery) : that.coreQuery != null) return false;
-        if (variants != null ? !variants.equals(that.variants) : that.variants != null) return false;
-        return error != null ? error.equals(that.error) : that.error == null;
-
-    }
-
-    @Override
-    public int hashCode() {
-        int result = coreQuery != null ? coreQuery.hashCode() : 0;
-        result = 31 * result + (variants != null ? variants.hashCode() : 0);
-        result = 31 * result + (error != null ? error.hashCode() : 0);
-        return result;
     }
 }
