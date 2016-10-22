@@ -44,7 +44,7 @@ public interface BeaconService {
      * @param dataset dataset
      * @return list of beacon responses
      */
-    BeaconResponse query(String chrom, Long pos, String allele, String ref, String dataset);
+    BeaconResponse query(String chrom, Integer pos, String allele, String ref, String dataset);
 
     /**
      * Obtains beacon information.

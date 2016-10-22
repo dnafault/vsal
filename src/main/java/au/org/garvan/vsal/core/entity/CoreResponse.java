@@ -12,14 +12,14 @@ public class CoreResponse {
 
     private CoreQuery coreQuery;
     private List<CoreVariant> variants;
-    private List<Long> total;
+    private List<Integer> total;
     private Error error;
 
     public CoreResponse() {
         // needed for JAXB
     }
 
-    public CoreResponse(CoreQuery coreQuery, List<CoreVariant> variants, List<Long> total, Error error) {
+    public CoreResponse(CoreQuery coreQuery, List<CoreVariant> variants, List<Integer> total, Error error) {
         this.coreQuery = coreQuery;
         this.variants = variants;
         this.total = total;
@@ -42,11 +42,11 @@ public class CoreResponse {
         this.variants = variants;
     }
 
-    public List<Long> getTotal() {
+    public List<Integer> getTotal() {
         return total;
     }
 
-    public void setTotal(List<Long> total) {
+    public void setTotal(List<Integer> total) {
         this.total = total;
     }
 

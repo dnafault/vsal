@@ -141,7 +141,7 @@ public class QueryUtils {
      * @param dataset dataset
      * @return normalized query
      */
-    public static Query getQuery(String chrom, Long pos, String allele, String ref, String dataset) {
+    public static Query getQuery(String chrom, Integer pos, String allele, String ref, String dataset) {
         Chromosome c = normalizeChromosome(chrom);
         Reference r = normalizeReference(ref);
 

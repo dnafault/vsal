@@ -33,14 +33,14 @@ public class Query {
 
     private String allele;
     private Chromosome chromosome;
-    private Long position;
+    private Integer position;
     private Reference reference;
     private String dataset_id;
 
     /*
      * required field(s): allele, chromosome, position, reference
      */
-    public Query(String allele, Chromosome chromosome, Long position, Reference reference, String dataset_id) {
+    public Query(String allele, Chromosome chromosome, Integer position, Reference reference, String dataset_id) {
         this.allele = allele;
         this.chromosome = chromosome;
         this.position = position;
@@ -76,11 +76,11 @@ public class Query {
         this.reference = reference;
     }
 
-    public Long getPosition() {
+    public Integer getPosition() {
         return position;
     }
 
-    public void setPosition(Long position) {
+    public void setPosition(Integer position) {
         this.position = position;
     }
 

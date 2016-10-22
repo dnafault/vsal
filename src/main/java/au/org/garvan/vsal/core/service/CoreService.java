@@ -49,9 +49,9 @@ public class CoreService {
         OcgaCalls ocgac = new OcgaCalls();
 
         try {
-            List<Long> total = null;
+            List<Integer> total = null;
             if (q.getCount() != null && q.getCount()) {
-                total =  ocgac.ocgaCountVariants(q, samples);
+                total =  ocgac.CountVariants(q, samples);
             }
             return new CoreResponse(q, ocgac.ocgaFindVariants(q, samples), total, null);
         } catch (Exception e) {

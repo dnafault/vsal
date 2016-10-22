@@ -30,6 +30,8 @@ import au.org.garvan.vsal.beacon.entity.*;
 import au.org.garvan.vsal.beacon.entity.Error;
 import au.org.garvan.vsal.beacon.rest.OcgaCalls;
 import au.org.garvan.vsal.beacon.util.QueryUtils;
+import au.org.garvan.vsal.core.entity.CoreQuery;
+import au.org.garvan.vsal.core.util.CoreQueryUtils;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.RequestScoped;
@@ -40,7 +42,6 @@ import java.util.List;
  * MGRB implementation of a beacon service.
  *
  * @author Dmitry Degrave (dmeetry@gmail.com)
- * @author Miroslav Cupak (mirocupak@gmail.com)
  * @version 1.0
  */
 @RequestScoped
@@ -54,18 +55,18 @@ public class MgrbBeaconService implements BeaconService {
 
     @PostConstruct
     public void init() {
-        this.dataset = new Dataset("mgrb", "MGRB", "hg19", null, null);
-        this.query = new Query("T", Chromosome.CHR1, 10491L, Reference.HG19, "mgrb");
+        this.dataset = new Dataset("mgrb", "Garvan MGRB", "hg19", null, null);
+        this.query = new Query("T", Chromosome.CHR1, 10491, Reference.HG19, "mgrb");
         this.queries = new ArrayList<>();
         this.queries.add(query);
         this.datasets = new ArrayList<>();
         this.datasets.add(dataset);
-        this.beacon = new Beacon("mgrb", "MGRB Beacon", "Garvan Institute of Medical Research", "MGRB Beacon", "0.2",
+        this.beacon = new Beacon("Garvan", "Garvan MGRB Beacon", "Garvan Institute of Medical Research", "Garvan MGRB Beacon", "0.2",
                 "https://sgc.garvan.org.au/mgrb/beacon", "beacon@garvan.org.au", "", datasets, queries);
     }
 
     @Override
-    public BeaconResponse query(String chrom, Long pos, String allele, String ref, String dataset) {
+    public BeaconResponse query(String chrom, Integer pos, String allele, String ref, String dataset) {
 
         // required parameters are missing
         if (chrom == null || pos == null || allele == null || ref == null) {
@@ -95,19 +96,28 @@ public class MgrbBeaconService implements BeaconService {
             return new BeaconResponse(beacon.getId(), QueryUtils.getQuery(chrom, pos, allele, ref, dataset), responseResource);
         }
 
-        // call to OpenCGA
-        int n;
+        int grandTotal = 0;
+        List<Integer> total;
         OcgaCalls ocgac = new OcgaCalls();
+        CoreQuery coreQuery = CoreQueryUtils.getCoreQuery(q.getChromosome().toString(),
+                q.getPosition()+1, q.getPosition()+1, // convert 0-based beacon protocol into 1-based VCF position
+                null, q.getAllele(), q.getReference().toString(), q.getDataset_id(), null, null, null, null, null,
+                true, null, null, null, null, null, null, null, null, null, null, null, null,
+                /* Clinical */  null, null, null, null, null, null, null, null, null, null, null, null, null);
 
         try {
-            n = ocgac.ocgaBeaconQuery(q);
+            total =  ocgac.CountVariants(coreQuery, null);
         } catch (Exception e) {
-            Error errorResource = new Error("Runtime exception", e.getMessage());
+            Error errorResource = new Error("VS Runtime exception", e.getMessage());
             Response responseResource = new Response(null, null, null, null, errorResource);
             return new BeaconResponse(beacon.getId(), q, responseResource);
         }
 
-        Response responseResource = new Response(n>0, n, null, "Beacon coordinates are 0-based!", null);
+        for (Integer t : total) {
+            grandTotal += t;
+        }
+
+        Response responseResource = new Response(grandTotal>0, grandTotal, null, "Beacon coordinates are 0-based!", null);
         return new BeaconResponse(beacon.getId(), q, responseResource);
     }
 
