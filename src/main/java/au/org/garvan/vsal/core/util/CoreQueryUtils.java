@@ -164,4 +164,18 @@ public class CoreQueryUtils {
                 abdCircStart, abdCircEnd, glcStart, glcEnd);
     }
 
+    /**
+     * Obtains a canonical query object.
+     */
+    public static CoreQuery getCoreQuery(String chromosome, Integer position, String alt_allele, String ref, String dataset,
+                                         Boolean count) {
+
+        Chromosome c = normalizeChromosome(chromosome);
+        Reference r = normalizeReference(ref);
+        String altAllele= normalizeAllele(alt_allele);
+        DatasetID datasetId = DatasetID.fromString(dataset);
+
+        return new CoreQuery(c, position, altAllele, datasetId, r, count);
+    }
+
 }

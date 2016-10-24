@@ -1,7 +1,7 @@
 /*
  * Copyright 2016 Garvan Institute of Medical Research
  */
-package au.org.garvan.vsal.beacon.rest;
+package au.org.garvan.vsal.core.rest;
 
 import au.org.garvan.vsal.core.entity.CoreQuery;
 import au.org.garvan.vsal.core.entity.CoreVariant;

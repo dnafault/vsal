@@ -28,7 +28,7 @@ package au.org.garvan.vsal.beacon.service;
 
 import au.org.garvan.vsal.beacon.entity.*;
 import au.org.garvan.vsal.beacon.entity.Error;
-import au.org.garvan.vsal.beacon.rest.OcgaCalls;
+import au.org.garvan.vsal.core.rest.OcgaCalls;
 import au.org.garvan.vsal.beacon.util.QueryUtils;
 import au.org.garvan.vsal.core.entity.CoreQuery;
 import au.org.garvan.vsal.core.util.CoreQueryUtils;
@@ -100,10 +100,8 @@ public class MgrbBeaconService implements BeaconService {
         List<Integer> total;
         OcgaCalls ocgac = new OcgaCalls();
         CoreQuery coreQuery = CoreQueryUtils.getCoreQuery(q.getChromosome().toString(),
-                q.getPosition()+1, q.getPosition()+1, // convert 0-based beacon protocol into 1-based VCF position
-                null, q.getAllele(), q.getReference().toString(), q.getDataset_id(), null, null, null, null, null,
-                true, null, null, null, null, null, null, null, null, null, null, null, null,
-                /* Clinical */  null, null, null, null, null, null, null, null, null, null, null, null, null);
+                q.getPosition()+1, // convert 0-based beacon protocol into 1-based VCF position
+                q.getAllele(), q.getReference().toString(), q.getDataset_id(), true);
 
         try {
             total =  ocgac.CountVariants(coreQuery, null);

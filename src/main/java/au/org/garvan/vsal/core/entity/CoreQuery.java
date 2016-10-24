@@ -106,6 +106,16 @@ public class CoreQuery {
         this.glcEnd = glcEnd;
     }
 
+    public CoreQuery(Chromosome chromosome, Integer positionStart, String altAllele, DatasetID datasetId, Reference reference, Boolean count) {
+        this.chromosome = chromosome;
+        this.positionStart = positionStart;
+        this.positionEnd = positionStart;
+        this.altAllele = altAllele;
+        this.datasetId = datasetId;
+        this.reference = reference;
+        this.count = count;
+    }
+
     public Chromosome getChromosome() {
         return chromosome;
     }
