@@ -1,6 +1,7 @@
 package au.org.garvan.vsal.core.service;
 
 import au.org.garvan.vsal.beacon.entity.Error;
+import au.org.garvan.vsal.core.entity.CoreVariant;
 import au.org.garvan.vsal.core.rest.OcgaCalls;
 import au.org.garvan.vsal.core.entity.CoreQuery;
 import au.org.garvan.vsal.core.entity.CoreResponse;
@@ -25,10 +26,13 @@ public class CoreService {
 
     public CoreResponse query(CoreQuery q) {
 
+        final long start = System.nanoTime();
+
         // required parameters are missing
         if (q.getChromosome() == null && q.getGenes().isEmpty() && q.getDbSNP().isEmpty()) {
             Error errorResource = new Error("Incomplete Query", "Chromosome or Gene or dbSNP ID is required.");
-            return new CoreResponse(q, null, null, errorResource);
+            Long elapsed = (System.nanoTime() - start) / 1000000;
+            return new CoreResponse(q, null, null, errorResource, elapsed);
         }
 
         // call to ClinData
@@ -41,7 +45,8 @@ public class CoreService {
                 samples = new ClinDataCalls().getClinDataSamples(q);
             } catch (Exception e) {
                 Error errorResource = new Error("ClinData Runtime Exception", e.getMessage());
-                return new CoreResponse(q, null, null, errorResource);
+                Long elapsed = (System.nanoTime() - start) / 1000000;
+                return new CoreResponse(q, null, null, errorResource, elapsed);
             }
         }
 
@@ -53,10 +58,13 @@ public class CoreService {
             if (q.getCount() != null && q.getCount()) {
                 total =  ocgac.CountVariants(q, samples);
             }
-            return new CoreResponse(q, ocgac.ocgaFindVariants(q, samples), total, null);
+            List<CoreVariant> vars = ocgac.ocgaFindVariants(q, samples);
+            Long elapsed = (System.nanoTime() - start) / 1000000;
+            return new CoreResponse(q, vars, total, null, elapsed);
         } catch (Exception e) {
             Error errorResource = new Error("VS Runtime Exception", e.getMessage());
-            return new CoreResponse(q, null, null, errorResource);
+            Long elapsed = (System.nanoTime() - start) / 1000000;
+            return new CoreResponse(q, null, null, errorResource, elapsed);
         }
     }
 }

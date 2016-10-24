@@ -14,16 +14,18 @@ public class CoreResponse {
     private List<CoreVariant> variants;
     private List<Integer> total;
     private Error error;
+    private Long vsalTime;  // ms
 
     public CoreResponse() {
         // needed for JAXB
     }
 
-    public CoreResponse(CoreQuery coreQuery, List<CoreVariant> variants, List<Integer> total, Error error) {
+    public CoreResponse(CoreQuery coreQuery, List<CoreVariant> variants, List<Integer> total, Error error, Long vsalTime) {
         this.coreQuery = coreQuery;
         this.variants = variants;
         this.total = total;
         this.error = error;
+        this.vsalTime = vsalTime;
     }
 
     public CoreQuery getCoreQuery() {
@@ -56,5 +58,13 @@ public class CoreResponse {
 
     public void setError(Error error) {
         this.error = error;
+    }
+
+    public Long getVsalTime() {
+        return vsalTime;
+    }
+
+    public void setVsalTime(Long vsalTime) {
+        this.vsalTime = vsalTime;
     }
 }
