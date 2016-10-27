@@ -217,7 +217,7 @@ public class OcgaCalls {
         return queryResult.getEntity(String.class);
     }
 
-    public List<CoreVariant> ocgaFindVariants(CoreQuery coreQuery, List<String> samples)
+    public List<CoreVariant> ocgaFindVariants(CoreQuery coreQuery, List<String> samples, List<Integer> dbTime)
             throws IOException {
         // dirty fast checks for static fields
         if (prop == null) {
@@ -240,6 +240,7 @@ public class OcgaCalls {
             QueryResponse<VariantResponse> ocgaResponse = gson.fromJson(jsonVariants, type);
 
             variants.addAll(ocgaResponse.getResponse().get(0).getResult());
+            dbTime.add(ocgaResponse.getResponse().get(0).getDbTime());
         }
 
         return toCoreVariants(variants);
@@ -261,7 +262,7 @@ public class OcgaCalls {
         return coreVariants;
     }
 
-    public List<Integer> CountVariants(CoreQuery coreQuery, List<String> samples)
+    public List<Integer> CountVariants(CoreQuery coreQuery, List<String> samples, List<Integer> dbTime)
             throws IOException {
         // dirty fast checks for static fields
         if (prop == null) {
@@ -284,6 +285,7 @@ public class OcgaCalls {
             QueryResponse<Integer> ocgaResponse = gson.fromJson(jsonVariants, type);
 
             count.addAll(ocgaResponse.getResponse().get(0).getResult());
+            dbTime.add(ocgaResponse.getResponse().get(0).getDbTime());
         }
 
         return count;

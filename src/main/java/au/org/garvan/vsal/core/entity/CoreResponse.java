@@ -11,21 +11,29 @@ import java.util.List;
 public class CoreResponse {
 
     private CoreQuery coreQuery;
-    private List<CoreVariant> variants;
-    private List<Integer> total;
-    private Error error;
     private Long vsalTime;  // ms
+    private List<Integer> dbTime;
+    private List<Integer> total;
+    private List<CoreVariant> variants;
+    private Error error;
 
     public CoreResponse() {
         // needed for JAXB
     }
 
-    public CoreResponse(CoreQuery coreQuery, List<CoreVariant> variants, List<Integer> total, Error error, Long vsalTime) {
+    public CoreResponse(CoreQuery coreQuery, Long vsalTime, Error error) {
         this.coreQuery = coreQuery;
-        this.variants = variants;
-        this.total = total;
-        this.error = error;
         this.vsalTime = vsalTime;
+        this.error = error;
+    }
+
+    public CoreResponse(CoreQuery coreQuery, Long vsalTime, List<Integer> dbTime, List<Integer> total, List<CoreVariant> variants, Error error) {
+        this.coreQuery = coreQuery;
+        this.vsalTime = vsalTime;
+        this.dbTime = dbTime;
+        this.total = total;
+        this.variants = variants;
+        this.error = error;
     }
 
     public CoreQuery getCoreQuery() {
@@ -36,12 +44,20 @@ public class CoreResponse {
         this.coreQuery = coreQuery;
     }
 
-    public List<CoreVariant> getVariants() {
-        return variants;
+    public Long getVsalTime() {
+        return vsalTime;
     }
 
-    public void setVariants(List<CoreVariant> variants) {
-        this.variants = variants;
+    public void setVsalTime(Long vsalTime) {
+        this.vsalTime = vsalTime;
+    }
+
+    public List<Integer> getDbTime() {
+        return dbTime;
+    }
+
+    public void setDbTime(List<Integer> dbTime) {
+        this.dbTime = dbTime;
     }
 
     public List<Integer> getTotal() {
@@ -52,19 +68,19 @@ public class CoreResponse {
         this.total = total;
     }
 
+    public List<CoreVariant> getVariants() {
+        return variants;
+    }
+
+    public void setVariants(List<CoreVariant> variants) {
+        this.variants = variants;
+    }
+
     public Error getError() {
         return error;
     }
 
     public void setError(Error error) {
         this.error = error;
-    }
-
-    public Long getVsalTime() {
-        return vsalTime;
-    }
-
-    public void setVsalTime(Long vsalTime) {
-        this.vsalTime = vsalTime;
     }
 }

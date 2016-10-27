@@ -9,6 +9,7 @@ import au.org.garvan.vsal.core.rest.ClinDataCalls;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.RequestScoped;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -32,7 +33,7 @@ public class CoreService {
         if (q.getChromosome() == null && q.getGenes().isEmpty() && q.getDbSNP().isEmpty()) {
             Error errorResource = new Error("Incomplete Query", "Chromosome or Gene or dbSNP ID is required.");
             Long elapsed = (System.nanoTime() - start) / 1000000;
-            return new CoreResponse(q, null, null, errorResource, elapsed);
+            return new CoreResponse(q, elapsed, errorResource);
         }
 
         // call to ClinData
@@ -46,7 +47,7 @@ public class CoreService {
             } catch (Exception e) {
                 Error errorResource = new Error("ClinData Runtime Exception", e.getMessage());
                 Long elapsed = (System.nanoTime() - start) / 1000000;
-                return new CoreResponse(q, null, null, errorResource, elapsed);
+                return new CoreResponse(q, elapsed, errorResource);
             }
         }
 
@@ -55,16 +56,17 @@ public class CoreService {
 
         try {
             List<Integer> total = null;
+            List<Integer> dbTime = new ArrayList<>();
             if (q.getCount() != null && q.getCount()) {
-                total =  ocgac.CountVariants(q, samples);
+                total =  ocgac.CountVariants(q, samples, dbTime);
             }
-            List<CoreVariant> vars = ocgac.ocgaFindVariants(q, samples);
+            List<CoreVariant> vars = ocgac.ocgaFindVariants(q, samples, dbTime);
             Long elapsed = (System.nanoTime() - start) / 1000000;
-            return new CoreResponse(q, vars, total, null, elapsed);
+            return new CoreResponse(q, elapsed, dbTime, total, vars, null);
         } catch (Exception e) {
             Error errorResource = new Error("VS Runtime Exception", e.getMessage());
             Long elapsed = (System.nanoTime() - start) / 1000000;
-            return new CoreResponse(q, null, null, errorResource, elapsed);
+            return new CoreResponse(q, elapsed, errorResource);
         }
     }
 }

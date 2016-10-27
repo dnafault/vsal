@@ -104,7 +104,7 @@ public class MgrbBeaconService implements BeaconService {
                 q.getAllele(), q.getReference().toString(), q.getDataset_id(), true);
 
         try {
-            total =  ocgac.CountVariants(coreQuery, null);
+            total =  ocgac.CountVariants(coreQuery, null, new ArrayList<>());
         } catch (Exception e) {
             Error errorResource = new Error("VS Runtime exception", e.getMessage());
             Response responseResource = new Response(null, null, null, null, errorResource);
