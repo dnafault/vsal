@@ -1,45 +1,60 @@
-#version: '1'
+version: '2'
 
-vsal:
-  container_name: vsal
-  image: vsal.garvan.org.au:5000/vsal:latest
-  links:
-    - clindata
-    - ocga
-  ports:
-    - 8080:8080
-    - 8443:8443
+services:
+  vsal:
+    container_name: vsal
+    image: vsal.garvan.org.au:5000/vsal:latest
+    networks:
+      - nw_vsal
+    ports:
+      - 8080:8080
+      - 8443:8443
 
-clindata:
-  container_name: clindata
-  image: vsal.garvan.org.au:5000/clindata:latest
-  links:
-    - clindb:clindb
-  ports:
-    - 4080:8080
+  clindata:
+    container_name: clindata
+    image: vsal.garvan.org.au:5000/clindata:latest
+    networks:
+      - nw_vsal
+      - nw_clindb
+    ports:
+      - 4080:8080
 
-clindb:
-  container_name: clindb
-  image: vsal.garvan.org.au:5000/clindb:latest
-  ports:
-    - 3306:3306
+  clindb:
+    container_name: clindb
+    image: vsal.garvan.org.au:5000/clindb:latest
+    networks:
+      - nw_clindb
+    ports:
+      - 3306:3306
 
-ocga:
-  container_name: ocga
-  image: vsal.garvan.org.au:5000/ocga.deploy:latest
-  links:
-    - mongo:mongo
-  volumes:
-    - /data/catalog:/data/catalog
-    - /data/tomcat_logs:/usr/local/tomcat/logs
-    - /data/ocga_logs:/opt/opencga/logs/
-  ports:
-    - 9000:8080
+  ocga:
+    container_name: ocga
+    image: vsal.garvan.org.au:5000/ocga.deploy:latest
+    networks:
+      - nw_vsal
+      - nw_mongo
+    volumes:
+      - /data/catalog:/data/catalog
+      - /data/tomcat_logs:/usr/local/tomcat/logs
+      - /data/ocga_logs:/opt/opencga/logs/
+    ports:
+      - 7000:8080
 
-mongo:
-  container_name: mongo
-  image: mongo:3.2
-  volumes:
-    - /data/db:/data/db
-  ports:
-    - 27017:27017
+  mongo:
+    container_name: mongo
+    image: mongo:3.2
+    volumes:
+      - /data/db:/data/db
+    networks:
+      - nw_mongo
+    ports:
+      - 27017:27017
+
+networks:
+  nw_vsal:
+    driver: bridge
+  nw_clindb:
+    driver: bridge
+  nw_mongo:
+    driver: bridge
+
