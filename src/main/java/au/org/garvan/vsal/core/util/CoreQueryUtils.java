@@ -157,6 +157,7 @@ public class CoreQueryUtils {
         DatasetID datasetId = DatasetID.fromString(dataset);
         VariantType variantType = VariantType.fromString(type);
         Gender g = Gender.fromString(gender);
+        if (limit <= 0 || limit > 200) limit = 200; // production limits for Beta
 
         return new CoreQuery(c, position_start, position_end, refAllele, altAllele, datasetId, genes, dbSNP, variantType,
                 r, limit, skip, count, maf, popMaf, popAltFrq, popRefFrq, annotCT, annotHPO, annotGO, annotXref, annotBiotype,
