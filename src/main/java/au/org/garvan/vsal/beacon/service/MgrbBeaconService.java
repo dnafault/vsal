@@ -61,8 +61,8 @@ public class MgrbBeaconService implements BeaconService {
         this.queries.add(query);
         this.datasets = new ArrayList<>();
         this.datasets.add(dataset);
-        this.beacon = new Beacon("Garvan", "Garvan MGRB Beacon", "Garvan Institute of Medical Research", "Garvan MGRB Beacon", "0.2",
-                "https://sgc.garvan.org.au/mgrb/beacon", "beacon@garvan.org.au", "", datasets, queries);
+        this.beacon = new Beacon("Garvan Beacon ID", "Garvan Beacon", "Garvan Institute of Medical Research", "Garvan Beacon", "0.2",
+                "https://vsal.garvan.org.au/vsal/beacon", "sgc@garvan.org.au", "", datasets, queries);
     }
 
     @Override
