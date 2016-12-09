@@ -5,6 +5,7 @@ package au.org.garvan.vsal.core.rest;
 
 import au.org.garvan.vsal.core.entity.CoreQuery;
 import au.org.garvan.vsal.core.entity.CoreVariant;
+import au.org.garvan.vsal.core.entity.CoreVariantStats;
 import au.org.garvan.vsal.ocga.entity.*;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
@@ -250,9 +251,9 @@ public class OcgaCalls {
         List<CoreVariant> coreVariants = new LinkedList<>();
         for (VariantResponse vr : ocgaVariants) {
             String dbSNP = vr.getId();
-            List<VariantStats> stat = new LinkedList<>();
+            List<CoreVariantStats> stat = new LinkedList<>();
             for (StudyEntry studyEntry : vr.getStudies()) {
-                stat.add(studyEntry.getStats().get("ALL"));
+                stat.add(toCoreVariantStats(studyEntry.getStats().get("ALL")));
             }
             CoreVariant cv = new CoreVariant(vr.getChromosome(), vr.getStart(), vr.getEnd(),
                     (dbSNP != null && dbSNP.startsWith("rs")) ? dbSNP : null, vr.getAlternate(),
@@ -260,6 +261,10 @@ public class OcgaCalls {
             coreVariants.add(cv);
         }
         return coreVariants;
+    }
+
+    private CoreVariantStats toCoreVariantStats(VariantStats ocgaStat) {
+        return new CoreVariantStats(ocgaStat.getAltAlleleCount(), ocgaStat.getAltAlleleFreq(), ocgaStat.getMaf());
     }
 
     public List<Integer> CountVariants(CoreQuery coreQuery, List<String> samples, List<Integer> dbTime)

@@ -18,14 +18,14 @@ public class CoreVariant {
     private String strand;
     private String type;
 
-    private List<VariantStats> variantStats;
+    private List<CoreVariantStats> variantStats;
 
     public CoreVariant() {
         // needed for JAXB
     }
 
     public CoreVariant(String chromosome, int start, int end, String dbSNP, String alternate, String reference,
-                       String strand, String type, List<VariantStats> variantStats) {
+                       String strand, String type, List<CoreVariantStats> variantStats) {
         this.chromosome = chromosome;
         this.start = start;
         this.end = end;
@@ -101,11 +101,11 @@ public class CoreVariant {
         this.type = type;
     }
 
-    public List<VariantStats> getVariantStats() {
+    public List<CoreVariantStats> getVariantStats() {
         return variantStats;
     }
 
-    public void setVariantStats(List<VariantStats> variantStats) {
+    public void setVariantStats(List<CoreVariantStats> variantStats) {
         this.variantStats = variantStats;
     }
 }
