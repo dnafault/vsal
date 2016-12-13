@@ -1,7 +1,5 @@
 package au.org.garvan.vsal.core.entity;
 
-import au.org.garvan.vsal.ocga.entity.VariantStats;
-
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.List;
 
@@ -10,12 +8,10 @@ public class CoreVariant {
 
     private String chromosome;
     private int start;
-    private int end;
     private String dbSNP;
 
     private String alternate;
     private String reference;
-    private String strand;
     private String type;
 
     private List<CoreVariantStats> variantStats;
@@ -24,15 +20,12 @@ public class CoreVariant {
         // needed for JAXB
     }
 
-    public CoreVariant(String chromosome, int start, int end, String dbSNP, String alternate, String reference,
-                       String strand, String type, List<CoreVariantStats> variantStats) {
+    public CoreVariant(String chromosome, int start, String dbSNP, String alternate, String reference, String type, List<CoreVariantStats> variantStats) {
         this.chromosome = chromosome;
         this.start = start;
-        this.end = end;
         this.dbSNP = dbSNP;
         this.alternate = alternate;
         this.reference = reference;
-        this.strand = strand;
         this.type = type;
         this.variantStats = variantStats;
     }
@@ -51,14 +44,6 @@ public class CoreVariant {
 
     public void setStart(int start) {
         this.start = start;
-    }
-
-    public int getEnd() {
-        return end;
-    }
-
-    public void setEnd(int end) {
-        this.end = end;
     }
 
     public String getDbSNP() {
@@ -83,14 +68,6 @@ public class CoreVariant {
 
     public void setReference(String reference) {
         this.reference = reference;
-    }
-
-    public String getStrand() {
-        return strand;
-    }
-
-    public void setStrand(String strand) {
-        this.strand = strand;
     }
 
     public String getType() {

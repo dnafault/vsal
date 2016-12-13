@@ -255,16 +255,16 @@ public class OcgaCalls {
             for (StudyEntry studyEntry : vr.getStudies()) {
                 stat.add(toCoreVariantStats(studyEntry.getStats().get("ALL")));
             }
-            CoreVariant cv = new CoreVariant(vr.getChromosome(), vr.getStart(), vr.getEnd(),
+            CoreVariant cv = new CoreVariant(vr.getChromosome(), vr.getStart(),
                     (dbSNP != null && dbSNP.startsWith("rs")) ? dbSNP : null, vr.getAlternate(),
-                    vr.getReference(), vr.getStrand(), vr.getType(), stat);
+                    vr.getReference(), vr.getType(), stat);
             coreVariants.add(cv);
         }
         return coreVariants;
     }
 
     private CoreVariantStats toCoreVariantStats(VariantStats ocgaStat) {
-        return new CoreVariantStats(ocgaStat.getAltAlleleCount(), ocgaStat.getAltAlleleFreq(), ocgaStat.getMaf());
+        return new CoreVariantStats(ocgaStat.getAltAlleleCount(), ocgaStat.getAltAlleleFreq());
     }
 
     public List<Integer> CountVariants(CoreQuery coreQuery, List<String> samples, List<Integer> dbTime)

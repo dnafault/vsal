@@ -6,16 +6,14 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class CoreVariantStats {
     private int   altAlleleCount;
     private float altAlleleFreq;
-    private float maf;
 
     public CoreVariantStats() {
         // needed for JAXB
     }
 
-    public CoreVariantStats(int altAlleleCount, float altAlleleFreq, float maf) {
+    public CoreVariantStats(int altAlleleCount, float altAlleleFreq) {
         this.altAlleleCount = altAlleleCount;
         this.altAlleleFreq = altAlleleFreq;
-        this.maf = maf;
     }
 
     public int getAltAlleleCount() {
@@ -32,13 +30,5 @@ public class CoreVariantStats {
 
     public void setAltAlleleFreq(float altAlleleFreq) {
         this.altAlleleFreq = altAlleleFreq;
-    }
-
-    public float getMaf() {
-        return maf;
-    }
-
-    public void setMaf(float maf) {
-        this.maf = maf;
     }
 }
