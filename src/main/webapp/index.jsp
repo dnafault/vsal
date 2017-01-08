@@ -11,9 +11,9 @@
     by the client in its GET request, e.g.: "<i>Accept: application/json</i>".</p>
 <p>Example queries:</p>
 <ul>
-    <li><a href="<%= request.getRequestURL()%>beacon/"><%= request.getRequestURL()%>beacon/</a></li>
-    <li><a href="<%= request.getRequestURL()%>beacon/query?chrom=1&pos=10491&allele=T&ref=hg19">
-        <%= request.getRequestURL()%>beacon/query?chrom=1&pos=10491&allele=T&ref=hg19
+    <li><a href="https://sgc.garvan.org.au:8443/vsal/beacon/">https://sgc.garvan.org.au:8443/vsal/beacon/</a></li>
+    <li><a href="https://sgc.garvan.org.au:8443/vsal/beacon/query?chrom=1&pos=10491&allele=T&ref=hg19">
+        https://sgc.garvan.org.au:8443/vsal/beacon/query?chrom=1&pos=10491&allele=T&ref=hg19
     </a></li>
 </ul>
 </body>
