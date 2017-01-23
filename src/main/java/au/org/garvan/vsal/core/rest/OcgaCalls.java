@@ -264,7 +264,7 @@ public class OcgaCalls {
     }
 
     private CoreVariantStats toCoreVariantStats(VariantStats ocgaStat) {
-        return new CoreVariantStats(ocgaStat.getAltAlleleCount(), ocgaStat.getAltAlleleFreq());
+        return new CoreVariantStats(ocgaStat.getAltAlleleCount(), ocgaStat.getAltAlleleFreq(), ocgaStat.getGenotypesCount());
     }
 
     public List<Integer> CountVariants(CoreQuery coreQuery, List<String> samples, List<Integer> dbTime)
