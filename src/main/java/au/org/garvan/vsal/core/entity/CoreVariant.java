@@ -1,5 +1,7 @@
 package au.org.garvan.vsal.core.entity;
 
+import au.org.garvan.vsal.ocga.entity.VariantAnnotation;
+
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.List;
 
@@ -14,19 +16,21 @@ public class CoreVariant {
     private String reference;
     private String type;
 
+    private VariantAnnotation annotation;
     private List<CoreVariantStats> variantStats;
 
     public CoreVariant() {
         // needed for JAXB
     }
 
-    public CoreVariant(String chromosome, int start, String dbSNP, String alternate, String reference, String type, List<CoreVariantStats> variantStats) {
+    public CoreVariant(String chromosome, int start, String dbSNP, String alternate, String reference, String type, VariantAnnotation annotation, List<CoreVariantStats> variantStats) {
         this.chromosome = chromosome;
         this.start = start;
         this.dbSNP = dbSNP;
         this.alternate = alternate;
         this.reference = reference;
         this.type = type;
+        this.annotation = annotation;
         this.variantStats = variantStats;
     }
 
@@ -76,6 +80,14 @@ public class CoreVariant {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public VariantAnnotation getAnnotation() {
+        return annotation;
+    }
+
+    public void setAnnotation(VariantAnnotation annotation) {
+        this.annotation = annotation;
     }
 
     public List<CoreVariantStats> getVariantStats() {

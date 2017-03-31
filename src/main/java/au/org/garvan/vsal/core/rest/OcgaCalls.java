@@ -135,7 +135,7 @@ public class OcgaCalls {
         if (count) {
             queryParams.add("count", "true");
         }
-        queryParams.add("exclude", "studies.samplesData,studies.files,annotation");
+        queryParams.add("exclude", "studies.samplesData,studies.files");
         if (query.getChromosome() != null && query.getPositionStart() != null && query.getPositionEnd() != null) { // 1-based VCF positions
             queryParams.add("region", query.getChromosome().toString() +
                     ":" + query.getPositionStart() + "-" + query.getPositionEnd());
@@ -257,7 +257,7 @@ public class OcgaCalls {
             }
             CoreVariant cv = new CoreVariant(vr.getChromosome(), vr.getStart(),
                     (dbSNP != null && dbSNP.startsWith("rs")) ? dbSNP : null, vr.getAlternate(),
-                    vr.getReference(), vr.getType(), stat);
+                    vr.getReference(), vr.getType(), vr.getAnnotation(), stat);
             coreVariants.add(cv);
         }
         return coreVariants;

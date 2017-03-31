@@ -16,7 +16,7 @@ public class VariantResponse {
     //    private StructuralVariation sv;
 //    private Map<String,List<String>> hgvs;
 //    private Map<String,String> hgvs;
-    //    private VariantAnnotation annotation
+    private VariantAnnotation annotation;
 
     private String id; // supposed to be dbSNP ID, but if null, it's filled in by ocga-generated trash
     private int end;
@@ -29,13 +29,14 @@ public class VariantResponse {
     }
 
     public VariantResponse(String type, String reference, List<String> names, List<StudyEntry> studies, String alternate,
-                           String strand, String id, int end, int start, String chromosome, int length) {
+                           String strand, VariantAnnotation annotation, String id, int end, int start, String chromosome, int length) {
         this.type = type;
         this.reference = reference;
         this.names = names;
         this.studies = studies;
         this.alternate = alternate;
         this.strand = strand;
+        this.annotation = annotation;
         this.id = id;
         this.end = end;
         this.start = start;
@@ -89,6 +90,14 @@ public class VariantResponse {
 
     public void setStrand(String strand) {
         this.strand = strand;
+    }
+
+    public VariantAnnotation getAnnotation() {
+        return annotation;
+    }
+
+    public void setAnnotation(VariantAnnotation annotation) {
+        this.annotation = annotation;
     }
 
     public String getId() {
