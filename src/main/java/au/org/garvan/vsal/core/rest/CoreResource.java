@@ -48,6 +48,7 @@ public class CoreResource {
                               @QueryParam("populationRefFrequency") String popRefFrq, // [<|>|<=|>=]{number}
 
                               // Annotations
+                              @QueryParam("returnAnnotations") Boolean returnAnnotations,
                               @QueryParam("annotCT") String annotCT,
                               @QueryParam("annotHPO") String annotHPO,
                               @QueryParam("annotGO") String annotGO,
@@ -75,7 +76,8 @@ public class CoreResource {
 
         CoreQuery coreQuery = CoreQueryUtils.getCoreQuery(chromosome, positionStart, positionEnd, refAllele,
                 altAllele, "hg19", dataset, genes, dbSNP, type, limit, skip, count, maf, popMaf, popAltFrq, popRefFrq,
-                annotCT, annotHPO, annotGO, annotXref, annotBiotype, polyphen, sift, conservationScore,
+                // Annotations
+                returnAnnotations, annotCT, annotHPO, annotGO, annotXref, annotBiotype, polyphen, sift, conservationScore,
                 // Clinical
                 gender, yobStart, yobEnd, sbpStart, sbpEnd, heightStart, heightEnd, weightStart, weightEnd,
                 abdCircStart, abdCircEnd, glcStart, glcEnd);

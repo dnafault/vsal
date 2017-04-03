@@ -30,6 +30,7 @@ public class CoreQuery {
     private String popRefFrq;
 
     // Annotations
+    private Boolean returnAnnotations;
     private String annotCT;
     private String annotHPO;
     private String annotGO;
@@ -59,13 +60,17 @@ public class CoreQuery {
         // needed for JAXB
     }
 
-    public CoreQuery(Chromosome chromosome, Integer positionStart, Integer positionEnd, String refAllele, String altAllele,
-                     DatasetID datasetId, List<String> genes, List<String> dbSNP, VariantType type, Reference reference,
-                     Integer limit, Integer skip, Boolean count, String maf, String popMaf, String popAltFrq, String popRefFrq,
-                     String annotCT, String annotHPO, String annotGO, String annotXref, String annotBiotype, String polyphen,
-                     String sift, String conservationScore, Gender gender, Integer yobStart, Integer yobEnd, Integer sbpStart,
-                     Integer sbpEnd, Float heightStart, Float heightEnd, Float weightStart, Float weightEnd, Integer abdCircStart,
-                     Integer abdCircEnd, Float glcStart, Float glcEnd) {
+    public CoreQuery(Chromosome chromosome, Integer positionStart, String altAllele, DatasetID datasetId, Reference reference, Boolean count) {
+        this.chromosome = chromosome;
+        this.positionStart = positionStart;
+        this.positionEnd = positionStart;
+        this.altAllele = altAllele;
+        this.datasetId = datasetId;
+        this.reference = reference;
+        this.count = count;
+    }
+
+    public CoreQuery(Chromosome chromosome, Integer positionStart, Integer positionEnd, String refAllele, String altAllele, DatasetID datasetId, List<String> genes, List<String> dbSNP, VariantType type, Reference reference, Integer limit, Integer skip, Boolean count, String maf, String popMaf, String popAltFrq, String popRefFrq, Boolean returnAnnotations, String annotCT, String annotHPO, String annotGO, String annotXref, String annotBiotype, String polyphen, String sift, String conservationScore, Gender gender, Integer yobStart, Integer yobEnd, Integer sbpStart, Integer sbpEnd, Float heightStart, Float heightEnd, Float weightStart, Float weightEnd, Integer abdCircStart, Integer abdCircEnd, Float glcStart, Float glcEnd) {
         this.chromosome = chromosome;
         this.positionStart = positionStart;
         this.positionEnd = positionEnd;
@@ -83,6 +88,7 @@ public class CoreQuery {
         this.popMaf = popMaf;
         this.popAltFrq = popAltFrq;
         this.popRefFrq = popRefFrq;
+        this.returnAnnotations = returnAnnotations;
         this.annotCT = annotCT;
         this.annotHPO = annotHPO;
         this.annotGO = annotGO;
@@ -104,16 +110,6 @@ public class CoreQuery {
         this.abdCircEnd = abdCircEnd;
         this.glcStart = glcStart;
         this.glcEnd = glcEnd;
-    }
-
-    public CoreQuery(Chromosome chromosome, Integer positionStart, String altAllele, DatasetID datasetId, Reference reference, Boolean count) {
-        this.chromosome = chromosome;
-        this.positionStart = positionStart;
-        this.positionEnd = positionStart;
-        this.altAllele = altAllele;
-        this.datasetId = datasetId;
-        this.reference = reference;
-        this.count = count;
     }
 
     public Chromosome getChromosome() {
@@ -250,6 +246,14 @@ public class CoreQuery {
 
     public void setPopRefFrq(String popRefFrq) {
         this.popRefFrq = popRefFrq;
+    }
+
+    public Boolean getReturnAnnotations() {
+        return returnAnnotations;
+    }
+
+    public void setReturnAnnotations(Boolean returnAnnotations) {
+        this.returnAnnotations = returnAnnotations;
     }
 
     public String getAnnotCT() {

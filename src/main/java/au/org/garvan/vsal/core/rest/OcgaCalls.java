@@ -135,7 +135,11 @@ public class OcgaCalls {
         if (count) {
             queryParams.add("count", "true");
         }
-        queryParams.add("exclude", "studies.samplesData,studies.files");
+        if (query.getReturnAnnotations()) {
+            queryParams.add("exclude", "studies.samplesData,studies.files");
+        } else {
+            queryParams.add("exclude", "studies.samplesData,studies.files,annotation");
+        }
         if (query.getChromosome() != null && query.getPositionStart() != null && query.getPositionEnd() != null) { // 1-based VCF positions
             queryParams.add("region", query.getChromosome().toString() +
                     ":" + query.getPositionStart() + "-" + query.getPositionEnd());

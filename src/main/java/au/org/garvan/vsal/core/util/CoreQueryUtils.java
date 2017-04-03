@@ -143,6 +143,7 @@ public class CoreQueryUtils {
                                          // Stat
                                          String maf, String popMaf, String popAltFrq, String popRefFrq,
                                          // Annotations
+                                         Boolean returnAnnotations,
                                          String annotCT, String annotHPO, String annotGO, String annotXref, String annotBiotype,
                                          String polyphen, String sift, String conservationScore,
                                          // Clinical parameters
@@ -158,9 +159,10 @@ public class CoreQueryUtils {
         VariantType variantType = VariantType.fromString(type);
         Gender g = Gender.fromString(gender);
         Integer lim = (limit == null || limit <= 0 || limit > 1000) ? 1000 : limit; // production limits for Beta
+        Boolean fwAnnot = (returnAnnotations == null) ? false : returnAnnotations;
 
         return new CoreQuery(c, position_start, position_end, refAllele, altAllele, datasetId, genes, dbSNP, variantType,
-                r, lim, skip, count, maf, popMaf, popAltFrq, popRefFrq, annotCT, annotHPO, annotGO, annotXref, annotBiotype,
+                r, lim, skip, count, maf, popMaf, popAltFrq, popRefFrq, fwAnnot, annotCT, annotHPO, annotGO, annotXref, annotBiotype,
                 polyphen, sift, conservationScore, g, yobStart, yobEnd, sbpStart, sbpEnd, heightStart, heightEnd, weightStart, weightEnd,
                 abdCircStart, abdCircEnd, glcStart, glcEnd);
     }
