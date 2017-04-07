@@ -38,18 +38,18 @@ public class CoreService {
 
         // call to ClinData
         List<String> samples = null;
-//        if ( q.getGender() != null || q.getYobStart() != null || q.getYobEnd() != null ||
-//             q.getSbpStart() != null || q.getSbpEnd() != null || q.getHeightStart() != null || q.getHeightEnd() != null ||
-//             q.getWeightStart() != null || q.getWeightEnd() != null || q.getAbdCircStart() != null ||
-//             q.getAbdCircEnd() != null || q.getGlcStart() != null || q.getGlcEnd() != null ) {
-//            try {
-//                samples = new ClinDataCalls().getClinDataSamples(q);
-//            } catch (Exception e) {
-//                Error errorResource = new Error("ClinData Runtime Exception", e.getMessage());
-//                Long elapsed = (System.nanoTime() - start) / 1000000;
-//                return new CoreResponse(q, elapsed, errorResource);
-//            }
-//        }
+        if ( q.getGender() != null || q.getYobStart() != null || q.getYobEnd() != null ||
+             q.getSbpStart() != null || q.getSbpEnd() != null || q.getHeightStart() != null || q.getHeightEnd() != null ||
+             q.getWeightStart() != null || q.getWeightEnd() != null || q.getAbdCircStart() != null ||
+             q.getAbdCircEnd() != null || q.getGlcStart() != null || q.getGlcEnd() != null ) {
+            try {
+                samples = new ClinDataCalls().getClinDataSamples(q);
+            } catch (Exception e) {
+                Error errorResource = new Error("ClinData Runtime Exception", e.getMessage());
+                Long elapsed = (System.nanoTime() - start) / 1000000;
+                return new CoreResponse(q, elapsed, errorResource);
+            }
+        }
 
         // call to OpenCGA
         OcgaCalls ocgac = new OcgaCalls();

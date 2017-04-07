@@ -63,20 +63,30 @@ public class OcgaCalls {
         }
     }
 
+    private ClientResponse ocgaRestPostCall(String url, String req)
+            throws IOException {
+        try {
+            Client client = Client.create();
+            WebResource webResource = client.resource(url);
+            return webResource.type("application/json").post(ClientResponse.class, req);
+        } catch (Exception e) {
+            throw new IOException("OpenCGA REST call exception");
+        }
+    }
+
     private synchronized void ocgaLogin()
             throws IOException {
         if (sessionId == null || sessionId.isEmpty()) {
             baseurl = "http://" + prop.getProperty("opencga.host") + prop.getProperty("opencga.resturl");
             String url = baseurl + "/users/" + prop.getProperty("opencga.user") + "/login";
-            MultivaluedMap<String,String> queryParams = new MultivaluedMapImpl();
-            queryParams.add("password", prop.getProperty("opencga.password"));
+            String reqBody = "{\"password\":\"" + prop.getProperty("opencga.password") + "\"}";
 
-            ClientResponse queryResult = ocgaRestGetCall(url,queryParams);
+            ClientResponse queryResult = ocgaRestPostCall(url,reqBody);
+
             if (queryResult.getStatus() != 200) {
                 throw new IOException("REST status: " + queryResult.getStatus());
             }
 
-            // Gson Unmarshalling - works well with any request
             GsonBuilder builder = new GsonBuilder();
             Gson gson = builder.serializeNulls().create();
             Type type = new TypeToken<QueryResponse<LoginResponse>>(){}.getType();
@@ -126,12 +136,16 @@ public class OcgaCalls {
     }
 
     private String getVariantsInStudy(Integer studyId, CoreQuery query, List<String> samples, boolean count)
-            throws IOException {
-        String study = studyId.toString();
-        String url = baseurl + "/studies/" + study + "/variants";
+            throws IOException, IllegalArgumentException {
 
+        if (studyId == null)
+            throw new IllegalArgumentException("Study can't be null");
+
+        String study = studyId.toString();
+        String url = baseurl + "/analysis/variant/query";
         MultivaluedMap<String,String> queryParams = new MultivaluedMapImpl();
         queryParams.add("sid", sessionId);
+        queryParams.add("studies", study);
         if (count) {
             queryParams.add("count", "true");
         }
@@ -208,11 +222,15 @@ public class OcgaCalls {
         if (query.getConservationScore() != null && !query.getConservationScore().isEmpty()) {
             queryParams.add("conservation", query.getConservationScore());
         }
-//        if (samples != null && !samples.isEmpty()) {
-//            for (String s : samples) {
-//                queryParams.add("returnedSamples", s);
-//            }
-//        }
+
+        // we can have thousands of samples, let's have just one parameter for them
+        if (samples != null && !samples.isEmpty()) {
+            StringBuilder sb = new StringBuilder();
+            for (String s : samples) {
+                sb.append(s).append(",");
+            }
+            queryParams.add("samples", sb.deleteCharAt(sb.length()-1).toString());
+        }
 
         ClientResponse queryResult = ocgaRestGetCall(url,queryParams);
         if (queryResult.getStatus() != 200) {
