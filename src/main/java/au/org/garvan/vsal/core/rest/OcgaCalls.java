@@ -9,9 +9,7 @@ import au.org.garvan.vsal.core.entity.CoreVariantStats;
 import au.org.garvan.vsal.ocga.entity.*;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.client.*;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 import javax.ws.rs.core.MultivaluedMap;
@@ -25,7 +23,7 @@ import java.util.List;
 import java.util.Properties;
 
 /**
- * OpenCGA Rest Calls
+ * Rest Calls to OpenCGA
  *
  * @author Dmitry Degrave (dmeetry@gmail.com)
  * @version 1.0
@@ -53,25 +51,17 @@ public class OcgaCalls {
     }
 
     private ClientResponse ocgaRestGetCall(String url, MultivaluedMap<String,String> params)
-            throws IOException {
-        try {
+            throws UniformInterfaceException, ClientHandlerException {
             Client client = Client.create();
             WebResource webResource = client.resource(url);
             return webResource.queryParams(params).accept("application/json").get(ClientResponse.class);
-        } catch (Exception e) {
-            throw new IOException("OpenCGA REST call exception");
-        }
     }
 
     private ClientResponse ocgaRestPostCall(String url, String req)
-            throws IOException {
-        try {
+            throws UniformInterfaceException, ClientHandlerException {
             Client client = Client.create();
             WebResource webResource = client.resource(url);
             return webResource.type("application/json").post(ClientResponse.class, req);
-        } catch (Exception e) {
-            throw new IOException("OpenCGA REST call exception");
-        }
     }
 
     private synchronized void ocgaLogin()
@@ -80,18 +70,19 @@ public class OcgaCalls {
             baseurl = "http://" + prop.getProperty("opencga.host") + prop.getProperty("opencga.resturl");
             String url = baseurl + "/users/" + prop.getProperty("opencga.user") + "/login";
             String reqBody = "{\"password\":\"" + prop.getProperty("opencga.password") + "\"}";
-
-            ClientResponse queryResult = ocgaRestPostCall(url,reqBody);
-
-            if (queryResult.getStatus() != 200) {
-                throw new IOException("REST status: " + queryResult.getStatus());
+            ClientResponse queryResult;
+            try {
+                queryResult = ocgaRestPostCall(url,reqBody);
+            } catch (UniformInterfaceException|ClientHandlerException e) {
+                throw new IOException("Can't connect to ocga.");
             }
-
+            if (queryResult.getStatus() != 200) {
+                throw new IOException("Ocga login failed: " + queryResult.getStatus());
+            }
             GsonBuilder builder = new GsonBuilder();
             Gson gson = builder.serializeNulls().create();
             Type type = new TypeToken<QueryResponse<LoginResponse>>(){}.getType();
             QueryResponse<LoginResponse> ocgaResponse = gson.fromJson(queryResult.getEntity(String.class), type);
-
             sessionId = ocgaResponse.getResponse().get(0).getResult().get(0).getSessionId();
         }
     }
@@ -101,10 +92,16 @@ public class OcgaCalls {
         String url = baseurl + "/projects/" + prop.getProperty("opencga.projectId") + "/studies";
         MultivaluedMap<String,String> queryParams = new MultivaluedMapImpl();
         queryParams.add("sid", sessionId);
-        ClientResponse queryResult = ocgaRestGetCall(url,queryParams);
+        ClientResponse queryResult;
+
+        try {
+            queryResult = ocgaRestGetCall(url, queryParams);
+        } catch (UniformInterfaceException|ClientHandlerException e) {
+            throw new IOException("Can't connect to ocga.");
+        }
 
         if (queryResult.getStatus() != 200) {
-            throw new IOException("REST status: " + queryResult.getStatus());
+            throw new IOException("Can't get study IDs: " + queryResult.getStatus());
         }
 
         JsonArray jsonArray;
@@ -114,6 +111,7 @@ public class OcgaCalls {
         List<Integer> studies = new ArrayList<>();
         int numStudies;
 
+        // old way to parse.
         if (jsonElement.isJsonObject()) {
             jsonObject = jsonElement.getAsJsonObject();
             jsonElement = jsonObject.get("response");
@@ -222,8 +220,7 @@ public class OcgaCalls {
         if (query.getConservationScore() != null && !query.getConservationScore().isEmpty()) {
             queryParams.add("conservation", query.getConservationScore());
         }
-
-        // we can have thousands of samples, let's have just one parameter for them
+        // we can get thousands of samples in list, let's have just one parameter for all of them
         if (samples != null && !samples.isEmpty()) {
             StringBuilder sb = new StringBuilder();
             for (String s : samples) {
@@ -232,9 +229,22 @@ public class OcgaCalls {
             queryParams.add("samples", sb.deleteCharAt(sb.length()-1).toString());
         }
 
-        ClientResponse queryResult = ocgaRestGetCall(url,queryParams);
+        ClientResponse queryResult;
+        try {
+            queryResult = ocgaRestGetCall(url, queryParams);
+        } catch (UniformInterfaceException|ClientHandlerException e) {
+            throw new IOException("Can't connect to ocga.");
+        }
+
         if (queryResult.getStatus() != 200) {
-            throw new IOException("Ocga REST call status: " + queryResult.getStatus());
+            if (queryResult.getStatus() == 500) {
+                GsonBuilder builder = new GsonBuilder();
+                Gson gson = builder.serializeNulls().create();
+                Type type = new TypeToken<QueryResponse<VariantResponse>>(){}.getType();
+                QueryResponse<VariantResponse> ocgaResponse = gson.fromJson(queryResult.getEntity(String.class), type);
+                throw new IOException("Can't get variants: " + ocgaResponse.getError());
+            } else
+                throw new IOException("Can't get variants: " + queryResult.getStatus());
         }
 
         return queryResult.getEntity(String.class);
