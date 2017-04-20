@@ -44,6 +44,10 @@ public class CoreService {
              q.getAbdCircEnd() != null || q.getGlcStart() != null || q.getGlcEnd() != null ) {
             try {
                 samples = new ClinDataCalls().getClinDataSamples(q);
+                if (samples == null) {
+                    Long elapsed = (System.nanoTime() - start) / 1000000;
+                    return new CoreResponse(q, elapsed, null, null, null, null, "No samples selected");
+                }
             } catch (Exception e) {
                 Error errorResource = new Error("ClinData Runtime Exception", e.getMessage());
                 Long elapsed = (System.nanoTime() - start) / 1000000;
@@ -62,7 +66,7 @@ public class CoreService {
             }
             List<CoreVariant> vars = ocgac.ocgaFindVariants(q, samples, dbTime);
             Long elapsed = (System.nanoTime() - start) / 1000000;
-            return new CoreResponse(q, elapsed, dbTime, total, vars, null);
+            return new CoreResponse(q, elapsed, dbTime, total, vars, null, null);
         } catch (Exception e) {
             Error errorResource = new Error("VS Runtime Exception", e.getMessage());
             Long elapsed = (System.nanoTime() - start) / 1000000;

@@ -51,17 +51,20 @@ public class OcgaCalls {
     }
 
     private ClientResponse ocgaRestGetCall(String url, MultivaluedMap<String,String> params)
-            throws UniformInterfaceException, ClientHandlerException {
-            Client client = Client.create();
-            WebResource webResource = client.resource(url);
-            return webResource.queryParams(params).accept("application/json").get(ClientResponse.class);
+        throws UniformInterfaceException, ClientHandlerException {
+        Client client = Client.create();
+        WebResource webResource = client.resource(url);
+        return webResource.queryParams(params).accept("application/json").get(ClientResponse.class);
     }
 
-    private ClientResponse ocgaRestPostCall(String url, String req)
-            throws UniformInterfaceException, ClientHandlerException {
-            Client client = Client.create();
-            WebResource webResource = client.resource(url);
-            return webResource.type("application/json").post(ClientResponse.class, req);
+    private ClientResponse ocgaRestPostCall(String url, MultivaluedMap<String,String> params, String jsonReq)
+        throws UniformInterfaceException, ClientHandlerException {
+        Client client = Client.create();
+        WebResource webResource = client.resource(url);
+        if (params != null)
+            return webResource.queryParams(params).type("application/json").post(ClientResponse.class, jsonReq);
+        else
+            return webResource.type("application/json").post(ClientResponse.class, jsonReq);
     }
 
     private synchronized void ocgaLogin()
@@ -69,18 +72,18 @@ public class OcgaCalls {
         if (sessionId == null || sessionId.isEmpty()) {
             baseurl = "http://" + prop.getProperty("opencga.host") + prop.getProperty("opencga.resturl");
             String url = baseurl + "/users/" + prop.getProperty("opencga.user") + "/login";
-            String reqBody = "{\"password\":\"" + prop.getProperty("opencga.password") + "\"}";
+            LoginRequest lr = new LoginRequest(prop.getProperty("opencga.password"));
+            GsonBuilder builder = new GsonBuilder();
+            Gson gson = builder.serializeNulls().create();
             ClientResponse queryResult;
             try {
-                queryResult = ocgaRestPostCall(url,reqBody);
+                queryResult = ocgaRestPostCall(url, null, gson.toJson(lr));
             } catch (UniformInterfaceException|ClientHandlerException e) {
                 throw new IOException("Can't connect to ocga.");
             }
             if (queryResult.getStatus() != 200) {
                 throw new IOException("Ocga login failed: " + queryResult.getStatus());
             }
-            GsonBuilder builder = new GsonBuilder();
-            Gson gson = builder.serializeNulls().create();
             Type type = new TypeToken<QueryResponse<LoginResponse>>(){}.getType();
             QueryResponse<LoginResponse> ocgaResponse = gson.fromJson(queryResult.getEntity(String.class), type);
             sessionId = ocgaResponse.getResponse().get(0).getResult().get(0).getSessionId();
@@ -133,7 +136,7 @@ public class OcgaCalls {
         return studies;
     }
 
-    private String getVariantsInStudy(Integer studyId, CoreQuery query, List<String> samples, boolean count)
+    private String getVariantsInStudyGET(Integer studyId, CoreQuery query, List<String> samples, boolean count)
             throws IOException, IllegalArgumentException {
 
         if (studyId == null)
@@ -144,6 +147,7 @@ public class OcgaCalls {
         MultivaluedMap<String,String> queryParams = new MultivaluedMapImpl();
         queryParams.add("sid", sessionId);
         queryParams.add("studies", study);
+
         if (count) {
             queryParams.add("count", "true");
         }
@@ -220,14 +224,7 @@ public class OcgaCalls {
         if (query.getConservationScore() != null && !query.getConservationScore().isEmpty()) {
             queryParams.add("conservation", query.getConservationScore());
         }
-        // we can get thousands of samples in list, let's have just one parameter for all of them
-        if (samples != null && !samples.isEmpty()) {
-            StringBuilder sb = new StringBuilder();
-            for (String s : samples) {
-                sb.append(s).append(",");
-            }
-            queryParams.add("samples", sb.deleteCharAt(sb.length()-1).toString());
-        }
+        // for sample filtering use POST - getVariantsInStudyPOST, as it's easy to exceed GET limit
 
         ClientResponse queryResult;
         try {
@@ -240,6 +237,107 @@ public class OcgaCalls {
             if (queryResult.getStatus() == 500) {
                 GsonBuilder builder = new GsonBuilder();
                 Gson gson = builder.serializeNulls().create();
+                Type type = new TypeToken<QueryResponse<VariantResponse>>(){}.getType();
+                QueryResponse<VariantResponse> ocgaResponse = gson.fromJson(queryResult.getEntity(String.class), type);
+                throw new IOException("Can't get variants: " + ocgaResponse.getError());
+            } else
+                throw new IOException("Can't get variants: " + queryResult.getStatus());
+        }
+
+        return queryResult.getEntity(String.class);
+    }
+
+    private String getVariantsInStudyPOST(Integer studyId, CoreQuery query, List<String> samples, boolean count)
+            throws IOException, IllegalArgumentException {
+
+        if (studyId == null)
+            throw new IllegalArgumentException("Study can't be null");
+
+        String study = studyId.toString();
+        String url = baseurl + "/analysis/variant/query";
+        MultivaluedMap<String,String> queryParams = new MultivaluedMapImpl();
+        queryParams.add("sid", sessionId);
+
+        if (count) {
+            queryParams.add("count", "true");
+        }
+        if (query.getReturnAnnotations()) {
+            queryParams.add("exclude", "studies.samplesData,studies.files");
+        } else {
+            queryParams.add("exclude", "studies.samplesData,studies.files,annotation");
+        }
+        if (query.getLimit() != null) {
+            queryParams.add("limit", query.getLimit().toString());
+        }
+        if (query.getSkip() != null) {
+            queryParams.add("skip", query.getSkip().toString());
+        }
+
+        VariantRequestParams vrp = new VariantRequestParams();
+        vrp.setStudies(study);
+
+        if (query.getChromosome() != null && query.getPositionStart() != null && query.getPositionEnd() != null) { // 1-based VCF positions
+            vrp.setRegion(query.getChromosome().toString() + ":" + query.getPositionStart() + "-" + query.getPositionEnd());
+        } else if (query.getChromosome() != null) {
+            vrp.setChromosome(query.getChromosome().toString());
+        }
+        if (query.getType() != null) {
+            vrp.setType(query.getType().toString());
+        }
+        if (query.getRefAllele() != null && !query.getRefAllele().isEmpty()) {
+            vrp.setReference(query.getRefAllele());
+        }
+        if (query.getAltAllele() != null && !query.getAltAllele().isEmpty()) {
+            vrp.setAlternate(query.getAltAllele());
+        }
+        if (query.getGenes() != null && !query.getGenes().isEmpty()) {
+            StringBuilder sb = new StringBuilder();
+            for (String s : query.getGenes()) {
+                sb.append(s).append(",");
+            }
+            vrp.setGene(sb.deleteCharAt(sb.length()-1).toString());
+        }
+        if (query.getDbSNP() != null && !query.getDbSNP().isEmpty()) {
+            StringBuilder sb = new StringBuilder();
+            for (String s : query.getDbSNP()) {
+                sb.append(s).append(",");
+            }
+            vrp.setIds(sb.deleteCharAt(sb.length()-1).toString());
+        }
+        if (query.getMaf() != null && !query.getMaf().isEmpty()) {
+            vrp.setMaf("ALL" + query.getMaf());
+        }
+        if (query.getPopAltFrq() != null && !query.getPopAltFrq().isEmpty()) {
+            vrp.setAlternate_frequency(study + ":ALL" + query.getPopAltFrq());
+        }
+        if (query.getPopRefFrq() != null && !query.getPopRefFrq().isEmpty()) {
+            vrp.setReference_frequency(study + ":ALL" + query.getPopRefFrq());
+        }
+        if (query.getPolyphen() != null && !query.getPolyphen().isEmpty()) {
+            vrp.setPolyphen(query.getPolyphen());
+        }
+        if (query.getSift() != null && !query.getSift().isEmpty()) {
+            vrp.setSift(query.getSift());
+        }
+        if (samples != null && !samples.isEmpty()) {
+            StringBuilder sb = new StringBuilder();
+            for (String s : samples) {
+                sb.append(s + ":0/1,1/1,0/2,1/2,2/2,0/3,1/3,2/3,3/3,0/4,1/4,2/4,3/4,4/4,0/5,1/5,2/5,3/5,4/5,5/5;");
+            }
+            vrp.setGenotype(sb.toString());
+        }
+
+        ClientResponse queryResult;
+        GsonBuilder builder = new GsonBuilder();
+        Gson gson = builder.create();
+        try {
+            queryResult = ocgaRestPostCall(url, queryParams, gson.toJson(vrp));
+        } catch (UniformInterfaceException|ClientHandlerException e) {
+            throw new IOException("Can't connect to ocga.");
+        }
+
+        if (queryResult.getStatus() != 200) {
+            if (queryResult.getStatus() == 500) {
                 Type type = new TypeToken<QueryResponse<VariantResponse>>(){}.getType();
                 QueryResponse<VariantResponse> ocgaResponse = gson.fromJson(queryResult.getEntity(String.class), type);
                 throw new IOException("Can't get variants: " + ocgaResponse.getError());
@@ -264,7 +362,7 @@ public class OcgaCalls {
         List<VariantResponse> variants = new LinkedList<>();
 
         for (Integer study : studies) {
-            String jsonVariants = getVariantsInStudy(study, coreQuery, samples, false);
+            String jsonVariants = getVariantsInStudyPOST(study, coreQuery, samples, false);
 
             // JAXB fails to parse Variant response, so use Gson Unmarshalling.
             GsonBuilder builder = new GsonBuilder();
@@ -313,7 +411,7 @@ public class OcgaCalls {
         List<Integer> count = new LinkedList<>();
 
         for (Integer study : studies) {
-            String jsonVariants = getVariantsInStudy(study, coreQuery, samples, true);
+            String jsonVariants = getVariantsInStudyPOST(study, coreQuery, samples, true);
 
             // JAXB fails to parse Variant response, so use Gson Unmarshalling.
             GsonBuilder builder = new GsonBuilder();
