@@ -27,6 +27,58 @@ public class CoreResource {
     @Inject
     private CoreService service;
 
+    /**
+     * VSAL REST end point: /find
+     * <p>
+     * Either <b>chromosome</b> or <b>gene</b> or <b>dbSNP</b> is required. <b>dataset</b> is always required. Everything else is optional.
+     * <p>
+     * E.g.
+     * <pre><i>
+     * find?genes=TP53&dataset=ASPREE&count=true
+     * find?chromosome=1&dataset=ASPREE&glcStart=8&glcEnd=10&limit=100
+     * </i></pre>
+     *
+     * @param chromosome  chromosome, [1-22, X, Y, MT] or [Chr1-Chr22, ChrX, ChrY, ChrMT]
+     * @param positionStart start of a region in chromosome, inclusive
+     * @param positionEnd end of a region in chromosome, inclusive
+     * @param refAllele reference allele
+     * @param altAllele alternate allele
+     * @param dataset dataset
+     * @param genes list of genes
+     * @param dbSNP list of dbSNP ids
+     * @param type type, [SNV, MNV, INDEL, SV, CNV]
+     * @param limit limit for # of variants in response
+     * @param skip # of skipped variants
+     * @param count return total # of variants in result
+     * @param samples list of samples ids
+     * @param maf minor allele frequency, [<|>|<=|>=]{number}
+     * @param popMaf population minor allele frequency, [<|>|<=|>=]{number}
+     * @param popAltFrq alternate population frequency, [<|>|<=|>=]{number}
+     * @param popRefFrq reference population frequency, [<|>|<=|>=]{number}
+     * @param returnAnnotations return annotations in variants
+     * @param annotCT consequence type SO terms list, e.g. start_lost, missense_variant, SO:0002054
+     * @param annotHPO HPO terms list, e.g. HP:0000545
+     * @param annotGO GO (Genome Ontology) terms list, e.g. GO:0002020
+     * @param annotXref XRef annotations
+     * @param annotBiotype biotype
+     * @param polyphen protein substitution score, [<|>|<=|>=]{number} or [~=|=|]{description} e.g. <=0.9 , =benign
+     * @param sift protein substitution score, [<|>|<=|>=]{number} or [~=|=|]{description} e.g. >0.1 , ~=tolerant
+     * @param conservationScore conservation score, {conservation_score}[<|>|<=|>=]{number} e.g. phastCons>0.5,phylop<0.1,gerp>0.1
+     * @param gender gender, [female, male]
+     * @param yobStart yob, start of range, inclusive
+     * @param yobEnd yob, end of range, inclusive
+     * @param sbpStart systolic blood pressure, mm Hg, start of range, inclusive
+     * @param sbpEnd systolic blood pressure, mm Hg, end of range, inclusive
+     * @param heightStart height in metres, start of range, inclusive
+     * @param heightEnd height in metres, end of range, inclusive
+     * @param weightStart weight in kg, start of range, inclusive
+     * @param weightEnd weight in kg, end of range, inclusive
+     * @param abdCircStart abdominal circumference in cm, start of range, inclusive
+     * @param abdCircEnd abdominal circumference in cm, end of range, inclusive
+     * @param glcStart glucose level in blood, mmol/L, start of range, inclusive
+     * @param glcEnd glucose level in blood, mmol/L, end of range, inclusive
+     * @return {@link CoreResponse}
+     */
     @GET
     public CoreResponse query(@QueryParam("chromosome") String chromosome,
                               @QueryParam("positionStart") Integer positionStart,
@@ -41,11 +93,14 @@ public class CoreResource {
                               @QueryParam("skip") Integer skip,
                               @QueryParam("count") Boolean count,
 
+                              // Sample filtering
+                              @QueryParam("samples") String samples,
+
                               // Stat
-                              @QueryParam("maf") String maf, // [<|>|<=|>=]{number}
-                              @QueryParam("populationMaf") String popMaf, // [<|>|<=|>=]{number}
-                              @QueryParam("populationAltFrequency") String popAltFrq, // [<|>|<=|>=]{number}
-                              @QueryParam("populationRefFrequency") String popRefFrq, // [<|>|<=|>=]{number}
+                              @QueryParam("maf") String maf,
+                              @QueryParam("populationMaf") String popMaf,
+                              @QueryParam("populationAltFrequency") String popAltFrq,
+                              @QueryParam("populationRefFrequency") String popRefFrq,
 
                               // Annotations
                               @QueryParam("returnAnnotations") Boolean returnAnnotations,
@@ -55,9 +110,9 @@ public class CoreResource {
                               @QueryParam("annotXref") String annotXref,
                               @QueryParam("annotBiotype") String annotBiotype,
 
-                              @QueryParam("polyphen") String polyphen, // [<|>|<=|>=]{number} or [~=|=|]{description} e.g. <=0.9 , =benign
-                              @QueryParam("sift") String sift, // [<|>|<=|>=]{number} or [~=|=|]{description} e.g. >0.1 , ~=tolerant
-                              @QueryParam("conservationScore") String conservationScore, // {conservation_score}[<|>|<=|>=]{number} e.g. phastCons>0.5,phylop<0.1,gerp>0.1
+                              @QueryParam("polyphen") String polyphen,
+                              @QueryParam("sift") String sift,
+                              @QueryParam("conservationScore") String conservationScore,
 
                               // Clinical parameters
                               @QueryParam("gender") String gender,
@@ -78,6 +133,8 @@ public class CoreResource {
                 altAllele, "hg19", dataset, genes, dbSNP, type, limit, skip, count, maf, popMaf, popAltFrq, popRefFrq,
                 // Annotations
                 returnAnnotations, annotCT, annotHPO, annotGO, annotXref, annotBiotype, polyphen, sift, conservationScore,
+                // Samples ids
+                samples,
                 // Clinical
                 gender, yobStart, yobEnd, sbpStart, sbpEnd, heightStart, heightEnd, weightStart, weightEnd,
                 abdCircStart, abdCircEnd, glcStart, glcEnd);

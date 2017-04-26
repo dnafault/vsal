@@ -146,6 +146,8 @@ public class CoreQueryUtils {
                                          Boolean returnAnnotations,
                                          String annotCT, String annotHPO, String annotGO, String annotXref, String annotBiotype,
                                          String polyphen, String sift, String conservationScore,
+                                         // Samples ids
+                                         String samples,
                                          // Clinical parameters
                                          String gender, Integer yobStart, Integer yobEnd, Integer sbpStart, Integer sbpEnd,
                                          Float heightStart, Float heightEnd, Float weightStart, Float weightEnd,
