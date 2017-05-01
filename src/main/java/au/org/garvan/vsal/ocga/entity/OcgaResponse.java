@@ -12,6 +12,9 @@ public class OcgaResponse<T> {
     private int numResults;
     private long numTotalResults;
 
+    private String warningMsg;
+    private String errorMsg;
+
     private String resultType;
     private List<T> result;
 
@@ -19,12 +22,14 @@ public class OcgaResponse<T> {
         // needed for JAXB
     }
 
-    public OcgaResponse(String id, int time, int dbTime, int numResults, long numTotalResults, String resultType, List<T> result) {
+    public OcgaResponse(String id, int time, int dbTime, int numResults, long numTotalResults, String warningMsg, String errorMsg, String resultType, List<T> result) {
         this.id = id;
         this.time = time;
         this.dbTime = dbTime;
         this.numResults = numResults;
         this.numTotalResults = numTotalResults;
+        this.warningMsg = warningMsg;
+        this.errorMsg = errorMsg;
         this.resultType = resultType;
         this.result = result;
     }
@@ -67,6 +72,22 @@ public class OcgaResponse<T> {
 
     public void setNumTotalResults(long numTotalResults) {
         this.numTotalResults = numTotalResults;
+    }
+
+    public String getWarningMsg() {
+        return warningMsg;
+    }
+
+    public void setWarningMsg(String warningMsg) {
+        this.warningMsg = warningMsg;
+    }
+
+    public String getErrorMsg() {
+        return errorMsg;
+    }
+
+    public void setErrorMsg(String errorMsg) {
+        this.errorMsg = errorMsg;
     }
 
     public String getResultType() {

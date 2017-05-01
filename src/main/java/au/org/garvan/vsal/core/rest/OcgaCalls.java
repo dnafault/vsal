@@ -383,7 +383,9 @@ public class OcgaCalls {
             String dbSNP = vr.getId();
             List<CoreVariantStats> stat = new LinkedList<>();
             for (StudyEntry studyEntry : vr.getStudies()) {
-                stat.add(toCoreVariantStats(studyEntry.getStats().get("ALL")));
+                CoreVariantStats cvs = toCoreVariantStats(studyEntry.getStats().get("ALL"));
+                if (cvs != null)
+                    stat.add(cvs);
             }
             CoreVariant cv = new CoreVariant(vr.getChromosome(), vr.getStart(),
                     (dbSNP != null && dbSNP.startsWith("rs")) ? dbSNP : null, vr.getAlternate(),
@@ -394,6 +396,8 @@ public class OcgaCalls {
     }
 
     private CoreVariantStats toCoreVariantStats(VariantStats ocgaStat) {
+        if (ocgaStat == null)
+            return null;
         return new CoreVariantStats(ocgaStat.getAltAlleleCount(), ocgaStat.getAltAlleleFreq(), ocgaStat.getGenotypesCount());
     }
 
