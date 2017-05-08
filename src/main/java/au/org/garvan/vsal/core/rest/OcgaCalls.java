@@ -261,7 +261,7 @@ public class OcgaCalls {
         if (count) {
             queryParams.add("count", "true");
         }
-        if (query.getReturnAnnotations()) {
+        if (query.getReturnAnnotations() != null && query.getReturnAnnotations()) {
             queryParams.add("exclude", "studies.samplesData,studies.files");
         } else {
             queryParams.add("exclude", "studies.samplesData,studies.files,annotation");
