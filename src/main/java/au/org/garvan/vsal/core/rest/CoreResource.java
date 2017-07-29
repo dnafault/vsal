@@ -30,7 +30,7 @@ public class CoreResource {
     /**
      * VSAL REST end point: /find
      * <p>
-     * Either <b>chromosome</b> or <b>gene</b> or <b>dbSNP</b> is required. <b>dataset</b> is always required. Everything else is optional.
+     * Either <b>chromosome</b> or <b>dbSNP</b> is required. <b>dataset</b> is always required. Everything else is optional.
      * <p>
      * E.g.
      * <pre><i>
@@ -44,26 +44,12 @@ public class CoreResource {
      * @param refAllele reference allele
      * @param altAllele alternate allele
      * @param dataset dataset
-     * @param genes list of genes
      * @param dbSNP list of dbSNP ids
      * @param type type, [SNV, MNV, INDEL, SV, CNV]
      * @param limit limit for # of variants in response
      * @param skip # of skipped variants
-     * @param count return total # of variants in result
      * @param samples list of samples ids
-     * @param maf minor allele frequency, [<|>|<=|>=]{number}
-     * @param popMaf population minor allele frequency, [<|>|<=|>=]{number}
-     * @param popAltFrq alternate population frequency, [<|>|<=|>=]{number}
-     * @param popRefFrq reference population frequency, [<|>|<=|>=]{number}
      * @param returnAnnotations return annotations in variants
-     * @param annotCT consequence type SO terms list, e.g. start_lost, missense_variant, SO:0002054
-     * @param annotHPO HPO terms list, e.g. HP:0000545
-     * @param annotGO GO (Genome Ontology) terms list, e.g. GO:0002020
-     * @param annotXref XRef annotations
-     * @param annotBiotype biotype
-     * @param polyphen protein substitution score, [<|>|<=|>=]{number} or [~=|=|]{description} e.g. <=0.9 , =benign
-     * @param sift protein substitution score, [<|>|<=|>=]{number} or [~=|=|]{description} e.g. >0.1 , ~=tolerant
-     * @param conservationScore conservation score, {conservation_score}[<|>|<=|>=]{number} e.g. phastCons>0.5,phylop<0.1,gerp>0.1
      * @param gender gender, [female, male]
      * @param yobStart yob, start of range, inclusive
      * @param yobEnd yob, end of range, inclusive
@@ -86,33 +72,16 @@ public class CoreResource {
                               @QueryParam("refAllele") String refAllele,
                               @QueryParam("altAllele") String altAllele,
                               @QueryParam("dataset") String dataset,
-                              @QueryParam("genes") List<String> genes,
                               @QueryParam("dbSNP") List<String> dbSNP,
                               @QueryParam("type") String type,
                               @QueryParam("limit") Integer limit,
                               @QueryParam("skip") Integer skip,
-                              @QueryParam("count") Boolean count,
 
                               // Sample filtering
                               @QueryParam("samples") String samples,
 
-                              // Stat
-                              @QueryParam("maf") String maf,
-                              @QueryParam("populationMaf") String popMaf,
-                              @QueryParam("populationAltFrequency") String popAltFrq,
-                              @QueryParam("populationRefFrequency") String popRefFrq,
-
                               // Annotations
                               @QueryParam("returnAnnotations") Boolean returnAnnotations,
-                              @QueryParam("annotCT") String annotCT,
-                              @QueryParam("annotHPO") String annotHPO,
-                              @QueryParam("annotGO") String annotGO,
-                              @QueryParam("annotXref") String annotXref,
-                              @QueryParam("annotBiotype") String annotBiotype,
-
-                              @QueryParam("polyphen") String polyphen,
-                              @QueryParam("sift") String sift,
-                              @QueryParam("conservationScore") String conservationScore,
 
                               // Clinical parameters
                               @QueryParam("gender") String gender,
@@ -130,11 +99,7 @@ public class CoreResource {
                               @QueryParam("glcEnd") Float glcEnd) {
 
         CoreQuery coreQuery = CoreQueryUtils.getCoreQuery(chromosome, positionStart, positionEnd, refAllele,
-                altAllele, "hg19", dataset, genes, dbSNP, type, limit, skip, count, maf, popMaf, popAltFrq, popRefFrq,
-                // Annotations
-                returnAnnotations, annotCT, annotHPO, annotGO, annotXref, annotBiotype, polyphen, sift, conservationScore,
-                // Samples ids
-                samples,
+                altAllele, "hg19", dataset, dbSNP, type, limit, skip, returnAnnotations, samples,
                 // Clinical
                 gender, yobStart, yobEnd, sbpStart, sbpEnd, heightStart, heightEnd, weightStart, weightEnd,
                 abdCircStart, abdCircEnd, glcStart, glcEnd);

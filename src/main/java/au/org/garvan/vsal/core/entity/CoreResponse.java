@@ -12,9 +12,8 @@ public class CoreResponse {
 
     private CoreQuery coreQuery;
     private Long vsalTime;  // ms
-    private List<Integer> dbTime;
-    private List<Integer> total;
-    private List<CoreVariant> variants;
+    private List<CoreVariant> v;
+    private int total;
     private Error error;
     private String status;
 
@@ -28,12 +27,11 @@ public class CoreResponse {
         this.error = error;
     }
 
-    public CoreResponse(CoreQuery coreQuery, Long vsalTime, List<Integer> dbTime, List<Integer> total, List<CoreVariant> variants, Error error, String status) {
+    public CoreResponse(CoreQuery coreQuery, Long vsalTime, List<CoreVariant> variants, int total, Error error, String status) {
         this.coreQuery = coreQuery;
         this.vsalTime = vsalTime;
-        this.dbTime = dbTime;
+        this.v = variants;
         this.total = total;
-        this.variants = variants;
         this.error = error;
         this.status = status;
     }
@@ -54,28 +52,20 @@ public class CoreResponse {
         this.vsalTime = vsalTime;
     }
 
-    public List<Integer> getDbTime() {
-        return dbTime;
+    public List<CoreVariant> getV() {
+        return v;
     }
 
-    public void setDbTime(List<Integer> dbTime) {
-        this.dbTime = dbTime;
+    public void setV(List<CoreVariant> v) {
+        this.v = v;
     }
 
-    public List<Integer> getTotal() {
+    public int getTotal() {
         return total;
     }
 
-    public void setTotal(List<Integer> total) {
+    public void setTotal(int total) {
         this.total = total;
-    }
-
-    public List<CoreVariant> getVariants() {
-        return variants;
-    }
-
-    public void setVariants(List<CoreVariant> variants) {
-        this.variants = variants;
     }
 
     public Error getError() {

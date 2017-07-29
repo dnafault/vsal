@@ -41,11 +41,13 @@ import java.util.Map;
  * Utils for query manipulation.
  *
  * @author Miroslav Cupak (mirocupak@gmail.com)
+ * @author Dmitry Degrave
  * @version 1.0
  */
 public class CoreQueryUtils {
 
     private static final Map<Reference, String> chromMapping = new HashMap<>();
+    private static final int MAX_VARIANTS = 100000;
 
     static {
         chromMapping.put(Reference.HG38, "GRCh38");
@@ -138,14 +140,10 @@ public class CoreQueryUtils {
      * Obtains a canonical query object.
      */
     public static CoreQuery getCoreQuery(String chromosome, Integer position_start, Integer position_end, String ref_allele,
-                                         String alt_allele, String ref, String dataset, List<String> genes, List<String> dbSNP,
-                                         String type, Integer limit, Integer skip, Boolean count,
-                                         // Stat
-                                         String maf, String popMaf, String popAltFrq, String popRefFrq,
+                                         String alt_allele, String ref, String dataset, List<String> dbSNP,
+                                         String type, Integer limit, Integer skip,
                                          // Annotations
                                          Boolean returnAnnotations,
-                                         String annotCT, String annotHPO, String annotGO, String annotXref, String annotBiotype,
-                                         String polyphen, String sift, String conservationScore,
                                          // Samples ids
                                          String samples,
                                          // Clinical parameters
@@ -160,27 +158,24 @@ public class CoreQueryUtils {
         DatasetID datasetId = DatasetID.fromString(dataset);
         VariantType variantType = VariantType.fromString(type);
         Gender g = Gender.fromString(gender);
-        Integer lim = (limit == null || limit <= 0 || limit > 1000) ? 1000 : limit; // production limits for Beta
+        Integer lim = (limit == null || limit < 0 || limit > MAX_VARIANTS) ? MAX_VARIANTS : limit; // production limits for Beta
         Boolean fwAnnot = (returnAnnotations == null) ? false : returnAnnotations;
 
-        return new CoreQuery(c, position_start, position_end, refAllele, altAllele, datasetId, genes, dbSNP, variantType,
-                r, lim, skip, count, maf, popMaf, popAltFrq, popRefFrq, fwAnnot, annotCT, annotHPO, annotGO, annotXref, annotBiotype,
-                polyphen, sift, conservationScore, g, yobStart, yobEnd, sbpStart, sbpEnd, heightStart, heightEnd, weightStart, weightEnd,
+        return new CoreQuery(c, position_start, position_end, refAllele, altAllele, datasetId, dbSNP, variantType,
+                r, lim, skip, fwAnnot, g, yobStart, yobEnd, sbpStart, sbpEnd, heightStart, heightEnd, weightStart, weightEnd,
                 abdCircStart, abdCircEnd, glcStart, glcEnd);
     }
 
     /**
      * Obtains a canonical query object.
      */
-    public static CoreQuery getCoreQuery(String chromosome, Integer position, String alt_allele, String ref, String dataset,
-                                         Boolean count) {
+    public static CoreQuery getCoreQuery(String chromosome, Integer position, String alt_allele, String ref, String dataset) {
 
         Chromosome c = normalizeChromosome(chromosome);
         Reference r = normalizeReference(ref);
         String altAllele= normalizeAllele(alt_allele);
         DatasetID datasetId = DatasetID.fromString(dataset);
 
-        return new CoreQuery(c, position, altAllele, datasetId, r, count);
+        return new CoreQuery(c, position, altAllele, datasetId, r);
     }
-
 }

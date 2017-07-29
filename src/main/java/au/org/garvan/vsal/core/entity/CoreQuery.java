@@ -15,31 +15,14 @@ public class CoreQuery {
     private String refAllele;
     private String altAllele;
     private DatasetID datasetId;
-    private List<String> genes;
     private List<String> dbSNP;
     private VariantType type;
     private Reference reference;
     private Integer limit;
     private Integer skip;
-    private Boolean count;
-
-    // Stat
-    private String maf;
-    private String popMaf;
-    private String popAltFrq;
-    private String popRefFrq;
 
     // Annotations
     private Boolean returnAnnotations;
-    private String annotCT;
-    private String annotHPO;
-    private String annotGO;
-    private String annotXref;
-    private String annotBiotype;
-
-    private String polyphen;
-    private String sift;
-    private String conservationScore;
 
     // Clinical data
     private Gender gender;
@@ -60,43 +43,28 @@ public class CoreQuery {
         // needed for JAXB
     }
 
-    public CoreQuery(Chromosome chromosome, Integer positionStart, String altAllele, DatasetID datasetId, Reference reference, Boolean count) {
+    public CoreQuery(Chromosome chromosome, Integer positionStart, String altAllele, DatasetID datasetId, Reference reference) {
         this.chromosome = chromosome;
         this.positionStart = positionStart;
         this.positionEnd = positionStart;
         this.altAllele = altAllele;
         this.datasetId = datasetId;
         this.reference = reference;
-        this.count = count;
     }
 
-    public CoreQuery(Chromosome chromosome, Integer positionStart, Integer positionEnd, String refAllele, String altAllele, DatasetID datasetId, List<String> genes, List<String> dbSNP, VariantType type, Reference reference, Integer limit, Integer skip, Boolean count, String maf, String popMaf, String popAltFrq, String popRefFrq, Boolean returnAnnotations, String annotCT, String annotHPO, String annotGO, String annotXref, String annotBiotype, String polyphen, String sift, String conservationScore, Gender gender, Integer yobStart, Integer yobEnd, Integer sbpStart, Integer sbpEnd, Float heightStart, Float heightEnd, Float weightStart, Float weightEnd, Integer abdCircStart, Integer abdCircEnd, Float glcStart, Float glcEnd) {
+    public CoreQuery(Chromosome chromosome, Integer positionStart, Integer positionEnd, String refAllele, String altAllele, DatasetID datasetId, List<String> dbSNP, VariantType type, Reference reference, Integer limit, Integer skip, Boolean returnAnnotations, Gender gender, Integer yobStart, Integer yobEnd, Integer sbpStart, Integer sbpEnd, Float heightStart, Float heightEnd, Float weightStart, Float weightEnd, Integer abdCircStart, Integer abdCircEnd, Float glcStart, Float glcEnd) {
         this.chromosome = chromosome;
         this.positionStart = positionStart;
         this.positionEnd = positionEnd;
         this.refAllele = refAllele;
         this.altAllele = altAllele;
         this.datasetId = datasetId;
-        this.genes = genes;
         this.dbSNP = dbSNP;
         this.type = type;
         this.reference = reference;
         this.limit = limit;
         this.skip = skip;
-        this.count = count;
-        this.maf = maf;
-        this.popMaf = popMaf;
-        this.popAltFrq = popAltFrq;
-        this.popRefFrq = popRefFrq;
         this.returnAnnotations = returnAnnotations;
-        this.annotCT = annotCT;
-        this.annotHPO = annotHPO;
-        this.annotGO = annotGO;
-        this.annotXref = annotXref;
-        this.annotBiotype = annotBiotype;
-        this.polyphen = polyphen;
-        this.sift = sift;
-        this.conservationScore = conservationScore;
         this.gender = gender;
         this.yobStart = yobStart;
         this.yobEnd = yobEnd;
@@ -160,14 +128,6 @@ public class CoreQuery {
         this.datasetId = datasetId;
     }
 
-    public List<String> getGenes() {
-        return genes;
-    }
-
-    public void setGenes(List<String> genes) {
-        this.genes = genes;
-    }
-
     public List<String> getDbSNP() {
         return dbSNP;
     }
@@ -208,116 +168,12 @@ public class CoreQuery {
         this.skip = skip;
     }
 
-    public Boolean getCount() {
-        return count;
-    }
-
-    public void setCount(Boolean count) {
-        this.count = count;
-    }
-
-    public String getMaf() {
-        return maf;
-    }
-
-    public void setMaf(String maf) {
-        this.maf = maf;
-    }
-
-    public String getPopMaf() {
-        return popMaf;
-    }
-
-    public void setPopMaf(String popMaf) {
-        this.popMaf = popMaf;
-    }
-
-    public String getPopAltFrq() {
-        return popAltFrq;
-    }
-
-    public void setPopAltFrq(String popAltFrq) {
-        this.popAltFrq = popAltFrq;
-    }
-
-    public String getPopRefFrq() {
-        return popRefFrq;
-    }
-
-    public void setPopRefFrq(String popRefFrq) {
-        this.popRefFrq = popRefFrq;
-    }
-
     public Boolean getReturnAnnotations() {
         return returnAnnotations;
     }
 
     public void setReturnAnnotations(Boolean returnAnnotations) {
         this.returnAnnotations = returnAnnotations;
-    }
-
-    public String getAnnotCT() {
-        return annotCT;
-    }
-
-    public void setAnnotCT(String annotCT) {
-        this.annotCT = annotCT;
-    }
-
-    public String getAnnotHPO() {
-        return annotHPO;
-    }
-
-    public void setAnnotHPO(String annotHPO) {
-        this.annotHPO = annotHPO;
-    }
-
-    public String getAnnotGO() {
-        return annotGO;
-    }
-
-    public void setAnnotGO(String annotGO) {
-        this.annotGO = annotGO;
-    }
-
-    public String getAnnotXref() {
-        return annotXref;
-    }
-
-    public void setAnnotXref(String annotXref) {
-        this.annotXref = annotXref;
-    }
-
-    public String getAnnotBiotype() {
-        return annotBiotype;
-    }
-
-    public void setAnnotBiotype(String annotBiotype) {
-        this.annotBiotype = annotBiotype;
-    }
-
-    public String getPolyphen() {
-        return polyphen;
-    }
-
-    public void setPolyphen(String polyphen) {
-        this.polyphen = polyphen;
-    }
-
-    public String getSift() {
-        return sift;
-    }
-
-    public void setSift(String sift) {
-        this.sift = sift;
-    }
-
-    public String getConservationScore() {
-        return conservationScore;
-    }
-
-    public void setConservationScore(String conservationScore) {
-        this.conservationScore = conservationScore;
     }
 
     public Gender getGender() {

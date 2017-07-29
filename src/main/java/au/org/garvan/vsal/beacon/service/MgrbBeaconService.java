@@ -1,5 +1,7 @@
 /*
- * Copyright 2016 Garvan Institute of Medical Research
+ * Copyright 2017 Dmitry Degrave
+ * Copyright 2017 Garvan Institute of Medical Research
+ *
  */
 /*
  * The MIT License
@@ -28,14 +30,15 @@ package au.org.garvan.vsal.beacon.service;
 
 import au.org.garvan.vsal.beacon.entity.*;
 import au.org.garvan.vsal.beacon.entity.Error;
-import au.org.garvan.vsal.core.rest.OcgaCalls;
 import au.org.garvan.vsal.beacon.util.QueryUtils;
 import au.org.garvan.vsal.core.entity.CoreQuery;
+import au.org.garvan.vsal.core.entity.CoreVariant;
 import au.org.garvan.vsal.core.util.CoreQueryUtils;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.RequestScoped;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -96,27 +99,24 @@ public class MgrbBeaconService implements BeaconService {
             return new BeaconResponse(beacon.getId(), QueryUtils.getQuery(chrom, pos, allele, ref, dataset), responseResource);
         }
 
-        int grandTotal = 0;
-        List<Integer> total;
-        OcgaCalls ocgac = new OcgaCalls();
         CoreQuery coreQuery = CoreQueryUtils.getCoreQuery(q.getChromosome().toString(),
                 q.getPosition()+1, // convert 0-based beacon protocol into 1-based VCF position
-                q.getAllele(), q.getReference().toString(), q.getDataset_id(), true);
+                q.getAllele(), q.getReference().toString(), q.getDataset_id());
 
         try {
-            total =  ocgac.CountVariants(coreQuery, null, new ArrayList<>());
+            int ac = 0;
+            List<Allele> alleles = new LinkedList<>();
+            for (CoreVariant cv : au.org.garvan.vsal.kudu.service.KuduCalls.variants(coreQuery)) {
+                ac += cv.getAc();
+                alleles.add(new Allele(cv.getA(), (double)cv.getAf()));
+            }
+            Response responseResource = new Response(ac>0, ac, alleles, "Beacon coordinates are 0-based!", null);
+            return new BeaconResponse(beacon.getId(), q, responseResource);
         } catch (Exception e) {
             Error errorResource = new Error("VS Runtime exception", e.getMessage());
             Response responseResource = new Response(null, null, null, null, errorResource);
             return new BeaconResponse(beacon.getId(), q, responseResource);
         }
-
-        for (Integer t : total) {
-            grandTotal += t;
-        }
-
-        Response responseResource = new Response(grandTotal>0, grandTotal, null, "Beacon coordinates are 0-based!", null);
-        return new BeaconResponse(beacon.getId(), q, responseResource);
     }
 
     @Override
