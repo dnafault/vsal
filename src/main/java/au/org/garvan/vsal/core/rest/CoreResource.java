@@ -49,6 +49,7 @@ public class CoreResource {
      * @param limit limit for # of variants in response
      * @param skip # of skipped variants
      * @param samples list of samples ids
+     * @param conj variant conjunction in samples
      * @param returnAnnotations return annotations in variants
      * @param gender gender, [female, male]
      * @param yobStart yob, start of range, inclusive
@@ -79,6 +80,7 @@ public class CoreResource {
 
                               // Sample filtering
                               @QueryParam("samples") String samples,
+                              @QueryParam("conj") Boolean conj,
 
                               // Annotations
                               @QueryParam("returnAnnotations") Boolean returnAnnotations,
@@ -99,7 +101,7 @@ public class CoreResource {
                               @QueryParam("glcEnd") Float glcEnd) {
 
         CoreQuery coreQuery = CoreQueryUtils.getCoreQuery(chromosome, positionStart, positionEnd, refAllele,
-                altAllele, "hg19", dataset, dbSNP, type, limit, skip, returnAnnotations, samples,
+                altAllele, "hg19", dataset, dbSNP, type, limit, skip, returnAnnotations, samples, conj,
                 // Clinical
                 gender, yobStart, yobEnd, sbpStart, sbpEnd, heightStart, heightEnd, weightStart, weightEnd,
                 abdCircStart, abdCircEnd, glcStart, glcEnd);

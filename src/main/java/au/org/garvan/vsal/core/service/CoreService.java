@@ -19,6 +19,8 @@ import java.util.List;
 @RequestScoped
 public class CoreService {
 
+    private static final int NANO_TO_MILLI = 1000000;
+
     @PostConstruct
     public void init() {
     }
@@ -29,37 +31,44 @@ public class CoreService {
 
         if (q.getChromosome() == null && q.getDbSNP().isEmpty()) {
             Error errorResource = new Error("Incomplete Query", "Chromosome or dbSNP ID is required.");
-            Long elapsed = (System.nanoTime() - start) / 1000000;
+            Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
             return new CoreResponse(q, elapsed, errorResource);
         }
 
-        // call to ClinData
         List<String> samples;
+        CoreResponse res = null;
+
         if ( q.getGender() != null || q.getYobStart() != null || q.getYobEnd() != null ||
              q.getSbpStart() != null || q.getSbpEnd() != null || q.getHeightStart() != null || q.getHeightEnd() != null ||
              q.getWeightStart() != null || q.getWeightEnd() != null || q.getAbdCircStart() != null ||
              q.getAbdCircEnd() != null || q.getGlcStart() != null || q.getGlcEnd() != null ) {
             try {
                 samples = new ClinDataCalls().getClinDataSamples(q);
-                if (samples == null) {
-                    Long elapsed = (System.nanoTime() - start) / 1000000;
-                    return new CoreResponse(q, elapsed, null, 0, null, "No samples selected");
+                if (samples == null || samples.isEmpty()) {
+                    Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
+                    res = new CoreResponse(q, elapsed, 0, null, 0, null, "No samples selected");
+                } else {
+                    List<CoreVariant> vars = au.org.garvan.vsal.kudu.service.KuduCalls.variantsInVirtualCohort(q, samples);
+                    Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
+                    res = new CoreResponse(q, elapsed, samples.size(), vars, vars.size(), null, null);
                 }
             } catch (Exception e) {
-                Error errorResource = new Error("ClinData Runtime Exception", e.getMessage());
-                Long elapsed = (System.nanoTime() - start) / 1000000;
-                return new CoreResponse(q, elapsed, errorResource);
+                Error errorResource = new Error("VS Runtime Exception", e.getMessage());
+                Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
+                res = new CoreResponse(q, elapsed, errorResource);
+            }
+        } else {
+            try {
+                List<CoreVariant> vars = au.org.garvan.vsal.kudu.service.KuduCalls.variants(q);
+                Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
+                res = new CoreResponse(q, elapsed, 0, vars, vars.size(), null, null);
+            } catch (Exception e) {
+                Error errorResource = new Error("VS Runtime Exception", e.getMessage());
+                Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
+                res = new CoreResponse(q, elapsed, errorResource);
             }
         }
 
-        try {
-            List<CoreVariant> vars = au.org.garvan.vsal.kudu.service.KuduCalls.variants(q);
-            Long elapsed = (System.nanoTime() - start) / 1000000;
-            return new CoreResponse(q, elapsed, vars, vars.size(), null, null);
-        } catch (Exception e) {
-            Error errorResource = new Error("VS Runtime Exception", e.getMessage());
-            Long elapsed = (System.nanoTime() - start) / 1000000;
-            return new CoreResponse(q, elapsed, errorResource);
-        }
+        return res;
     }
 }

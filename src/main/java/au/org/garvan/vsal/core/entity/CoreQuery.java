@@ -21,8 +21,8 @@ public class CoreQuery {
     private Integer limit;
     private Integer skip;
 
-    // Annotations
-    private Boolean returnAnnotations;
+    private Boolean conj = false; // find variants that exist in all samples
+    private Boolean returnAnnotations = false;
 
     // Clinical data
     private Gender gender;
@@ -52,7 +52,7 @@ public class CoreQuery {
         this.reference = reference;
     }
 
-    public CoreQuery(Chromosome chromosome, Integer positionStart, Integer positionEnd, String refAllele, String altAllele, DatasetID datasetId, List<String> dbSNP, VariantType type, Reference reference, Integer limit, Integer skip, Boolean returnAnnotations, Gender gender, Integer yobStart, Integer yobEnd, Integer sbpStart, Integer sbpEnd, Float heightStart, Float heightEnd, Float weightStart, Float weightEnd, Integer abdCircStart, Integer abdCircEnd, Float glcStart, Float glcEnd) {
+    public CoreQuery(Chromosome chromosome, Integer positionStart, Integer positionEnd, String refAllele, String altAllele, DatasetID datasetId, List<String> dbSNP, VariantType type, Reference reference, Integer limit, Integer skip, Boolean conj, Boolean returnAnnotations, Gender gender, Integer yobStart, Integer yobEnd, Integer sbpStart, Integer sbpEnd, Float heightStart, Float heightEnd, Float weightStart, Float weightEnd, Integer abdCircStart, Integer abdCircEnd, Float glcStart, Float glcEnd) {
         this.chromosome = chromosome;
         this.positionStart = positionStart;
         this.positionEnd = positionEnd;
@@ -64,6 +64,7 @@ public class CoreQuery {
         this.reference = reference;
         this.limit = limit;
         this.skip = skip;
+        this.conj = conj;
         this.returnAnnotations = returnAnnotations;
         this.gender = gender;
         this.yobStart = yobStart;
@@ -166,6 +167,14 @@ public class CoreQuery {
 
     public void setSkip(Integer skip) {
         this.skip = skip;
+    }
+
+    public Boolean getConj() {
+        return conj;
+    }
+
+    public void setConj(Boolean conj) {
+        this.conj = conj;
     }
 
     public Boolean getReturnAnnotations() {

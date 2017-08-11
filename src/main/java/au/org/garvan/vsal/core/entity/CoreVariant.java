@@ -5,8 +5,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "CoreVariant")
 public class CoreVariant {
 
-    private String c; // chromosome
-    private int s; // start
+    private String  c; // chromosome
+    private Integer s; // start
     private String rs; // dbSNP
 
     private String a; // alternate
@@ -14,16 +14,22 @@ public class CoreVariant {
     private String t; // type
 
     // cohort-wide alt allele stats
-    private int   ac; // cohort-wide alt allele count
-    private float af; // cohort-wide alt allele freq
-    private int   homc; // cohort-wide alt allele hom count
-    private int   hetc; // cohort-wide alt allele het count
+    private Integer     ac; // alt allele count
+    private Float       af; // alt allele freq
+    private Integer   homc; // alt allele hom count
+    private Integer   hetc; // alt allele het count
+
+    // virtual cohort-wide alt allele stats
+    private Integer     vac; // alt allele count
+    private Float       vaf; // alt allele freq
+    private Integer   vhomc; // alt allele hom count
+    private Integer   vhetc; // alt allele het count
 
     public CoreVariant() {
         // needed for JAXB
     }
 
-    public CoreVariant(String c, int s, String rs, String a, String r, String t, int ac, float af, int homc, int hetc) {
+    public CoreVariant(String c, Integer s, String rs, String a, String r, String t, Integer ac, Float af, Integer homc, Integer hetc, Integer vac, Float vaf, Integer vhomc, Integer vhetc) {
         this.c = c;
         this.s = s;
         this.rs = rs;
@@ -34,6 +40,36 @@ public class CoreVariant {
         this.af = af;
         this.homc = homc;
         this.hetc = hetc;
+        this.vac = vac;
+        this.vaf = vaf;
+        this.vhomc = vhomc;
+        this.vhetc = vhetc;
+    }
+
+    // Chapter 30 "Object Equality", "Programming in Scala" 3rd ed
+    private boolean canEqual(Object o) {
+        return o instanceof CoreVariant;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null) return false;
+        if (!this.canEqual(o)) return false;
+        CoreVariant that = (CoreVariant) o;
+        if (!c.equals(that.c)) return false;
+        if (!s.equals(that.s)) return false;
+        if (!a.equals(that.a)) return false;
+        return r.equals(that.r);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = c.hashCode();
+        result = 31 * result + s.hashCode();
+        result = 31 * result + a.hashCode();
+        result = 31 * result + r.hashCode();
+        return result;
     }
 
     public String getC() {
@@ -44,11 +80,11 @@ public class CoreVariant {
         this.c = c;
     }
 
-    public int getS() {
+    public Integer getS() {
         return s;
     }
 
-    public void setS(int s) {
+    public void setS(Integer s) {
         this.s = s;
     }
 
@@ -84,35 +120,67 @@ public class CoreVariant {
         this.t = t;
     }
 
-    public int getAc() {
+    public Integer getAc() {
         return ac;
     }
 
-    public void setAc(int ac) {
+    public void setAc(Integer ac) {
         this.ac = ac;
     }
 
-    public float getAf() {
+    public Float getAf() {
         return af;
     }
 
-    public void setAf(float af) {
+    public void setAf(Float af) {
         this.af = af;
     }
 
-    public int getHomc() {
+    public Integer getHomc() {
         return homc;
     }
 
-    public void setHomc(int homc) {
+    public void setHomc(Integer homc) {
         this.homc = homc;
     }
 
-    public int getHetc() {
+    public Integer getHetc() {
         return hetc;
     }
 
-    public void setHetc(int hetc) {
+    public void setHetc(Integer hetc) {
         this.hetc = hetc;
+    }
+
+    public Integer getVac() {
+        return vac;
+    }
+
+    public void setVac(Integer vac) {
+        this.vac = vac;
+    }
+
+    public Float getVaf() {
+        return vaf;
+    }
+
+    public void setVaf(Float vaf) {
+        this.vaf = vaf;
+    }
+
+    public Integer getVhomc() {
+        return vhomc;
+    }
+
+    public void setVhomc(Integer vhomc) {
+        this.vhomc = vhomc;
+    }
+
+    public Integer getVhetc() {
+        return vhetc;
+    }
+
+    public void setVhetc(Integer vhetc) {
+        this.vhetc = vhetc;
     }
 }

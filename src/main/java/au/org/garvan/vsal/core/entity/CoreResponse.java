@@ -12,6 +12,7 @@ public class CoreResponse {
 
     private CoreQuery coreQuery;
     private Long vsalTime;  // ms
+    private int vcSize; // virtual cohort size
     private List<CoreVariant> v;
     private int total;
     private Error error;
@@ -27,10 +28,11 @@ public class CoreResponse {
         this.error = error;
     }
 
-    public CoreResponse(CoreQuery coreQuery, Long vsalTime, List<CoreVariant> variants, int total, Error error, String status) {
+    public CoreResponse(CoreQuery coreQuery, Long vsalTime, int vcSize, List<CoreVariant> v, int total, Error error, String status) {
         this.coreQuery = coreQuery;
         this.vsalTime = vsalTime;
-        this.v = variants;
+        this.vcSize = vcSize;
+        this.v = v;
         this.total = total;
         this.error = error;
         this.status = status;
@@ -50,6 +52,14 @@ public class CoreResponse {
 
     public void setVsalTime(Long vsalTime) {
         this.vsalTime = vsalTime;
+    }
+
+    public int getVcSize() {
+        return vcSize;
+    }
+
+    public void setVcSize(int vcSize) {
+        this.vcSize = vcSize;
     }
 
     public List<CoreVariant> getV() {

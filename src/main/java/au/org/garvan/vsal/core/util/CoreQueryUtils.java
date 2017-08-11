@@ -146,6 +146,7 @@ public class CoreQueryUtils {
                                          Boolean returnAnnotations,
                                          // Samples ids
                                          String samples,
+                                         Boolean samplesConj,
                                          // Clinical parameters
                                          String gender, Integer yobStart, Integer yobEnd, Integer sbpStart, Integer sbpEnd,
                                          Float heightStart, Float heightEnd, Float weightStart, Float weightEnd,
@@ -159,10 +160,11 @@ public class CoreQueryUtils {
         VariantType variantType = VariantType.fromString(type);
         Gender g = Gender.fromString(gender);
         Integer lim = (limit == null || limit < 0 || limit > MAX_VARIANTS) ? MAX_VARIANTS : limit; // production limits for Beta
-        Boolean fwAnnot = (returnAnnotations == null) ? false : returnAnnotations;
+        Boolean retAnnot = (returnAnnotations == null) ? false : returnAnnotations;
+        Boolean conj = (samplesConj == null) ? false : samplesConj;
 
         return new CoreQuery(c, position_start, position_end, refAllele, altAllele, datasetId, dbSNP, variantType,
-                r, lim, skip, fwAnnot, g, yobStart, yobEnd, sbpStart, sbpEnd, heightStart, heightEnd, weightStart, weightEnd,
+                r, lim, skip, conj, retAnnot, g, yobStart, yobEnd, sbpStart, sbpEnd, heightStart, heightEnd, weightStart, weightEnd,
                 abdCircStart, abdCircEnd, glcStart, glcEnd);
     }
 
