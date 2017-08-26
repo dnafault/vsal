@@ -56,12 +56,12 @@ public class CoreService {
         List<String> samples;
         CoreResponse res = null;
 
-        if ( q.getGender() != null || q.getYobStart() != null || q.getYobEnd() != null ||
+        if ( q.getSamples() != null  || q.getGender() != null || q.getYobStart() != null || q.getYobEnd() != null ||
              q.getSbpStart() != null || q.getSbpEnd() != null || q.getHeightStart() != null || q.getHeightEnd() != null ||
              q.getWeightStart() != null || q.getWeightEnd() != null || q.getAbdCircStart() != null ||
              q.getAbdCircEnd() != null || q.getGlcStart() != null || q.getGlcEnd() != null ) {
             try {
-                samples = new ClinDataCalls().getClinDataSamples(q);
+                samples = (q.getSamples() != null) ? q.getSamples() : new ClinDataCalls().getClinDataSamples(q);
                 if (samples == null || samples.isEmpty()) {
                     Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
                     res = new CoreResponse(q, elapsed, 0, null, 0, null, "No samples selected");

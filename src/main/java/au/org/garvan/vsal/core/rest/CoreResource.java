@@ -79,7 +79,7 @@ public class CoreResource {
                               @QueryParam("skip") Integer skip,
 
                               // Sample filtering
-                              @QueryParam("samples") String samples,
+                              @QueryParam("samples") String samples, // csv
                               @QueryParam("conj") Boolean conj,
 
                               // Annotations

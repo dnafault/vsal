@@ -144,8 +144,8 @@ public class CoreQueryUtils {
                                          String type, Integer limit, Integer skip,
                                          // Annotations
                                          Boolean returnAnnotations,
-                                         // Samples ids
-                                         String samples,
+                                         // Samples, csv
+                                         String samplesAsCSV,
                                          Boolean samplesConj,
                                          // Clinical parameters
                                          String gender, Integer yobStart, Integer yobEnd, Integer sbpStart, Integer sbpEnd,
@@ -161,10 +161,11 @@ public class CoreQueryUtils {
         Gender g = Gender.fromString(gender);
         Integer lim = (limit == null || limit < 0 || limit > MAX_VARIANTS) ? MAX_VARIANTS : limit; // production limits for Beta
         Boolean retAnnot = (returnAnnotations == null) ? false : returnAnnotations;
+        List<String> samples = (samplesAsCSV != null) ? Arrays.asList(samplesAsCSV.split("\\s*,\\s*")) : null;
         Boolean conj = (samplesConj == null) ? false : samplesConj;
 
-        return new CoreQuery(c, position_start, position_end, refAllele, altAllele, datasetId, dbSNP, variantType,
-                r, lim, skip, conj, retAnnot, g, yobStart, yobEnd, sbpStart, sbpEnd, heightStart, heightEnd, weightStart, weightEnd,
+        return new CoreQuery(c, position_start, position_end, refAllele, altAllele, datasetId, dbSNP, variantType, r, lim,
+                skip, conj, retAnnot, samples, g, yobStart, yobEnd, sbpStart, sbpEnd, heightStart, heightEnd, weightStart, weightEnd,
                 abdCircStart, abdCircEnd, glcStart, glcEnd);
     }
 
