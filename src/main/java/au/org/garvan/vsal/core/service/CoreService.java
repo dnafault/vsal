@@ -35,6 +35,24 @@ public class CoreService {
             return new CoreResponse(q, elapsed, errorResource);
         }
 
+        if (q.getPositionStart() != null && q.getPositionStart() < 0 ) {
+            Error errorResource = new Error("Malformed Query", "Start position of a region should be >= 0");
+            Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
+            return new CoreResponse(q, elapsed, errorResource);
+        }
+
+        if (q.getPositionEnd() != null && q.getPositionEnd() < 0 ) {
+            Error errorResource = new Error("Malformed Query", "End position of a region should be >= 0");
+            Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
+            return new CoreResponse(q, elapsed, errorResource);
+        }
+
+        if (q.getPositionStart() != null && q.getPositionEnd() != null && q.getPositionEnd() < q.getPositionStart()) {
+            Error errorResource = new Error("Malformed Query", "End position of a region should be >= start position");
+            Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
+            return new CoreResponse(q, elapsed, errorResource);
+        }
+
         List<String> samples;
         CoreResponse res = null;
 
