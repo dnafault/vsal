@@ -66,7 +66,7 @@ public class CoreService {
                     Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
                     res = new CoreResponse(q, elapsed, 0, null, 0, null, "No samples selected");
                 } else {
-                    List<CoreVariant> vars = au.org.garvan.vsal.kudu.service.KuduCalls.variantsInVirtualCohort(q, samples);
+                    List<CoreVariant> vars = au.org.garvan.vsal.kudu.service.AsyncKuduCalls.variantsInVirtualCohort(q, samples);
                     Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
                     res = new CoreResponse(q, elapsed, samples.size(), vars, vars.size(), null, null);
                 }
