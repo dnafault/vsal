@@ -227,7 +227,7 @@ public class AsyncKuduCalls {
             cv.setVhomc(c.homc);
             cv.setVhetc(c.sc - c.homc);
             cv.setVac(2*c.homc + c.sc - c.homc);
-            cv.setVaf(cv.getVac()/(float)(2*c.sc));
+            cv.setVaf(cv.getVac()/(float)(2*samples.size()));
             coreVariants.add(cv);
             ++i;
         }
