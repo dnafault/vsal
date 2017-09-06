@@ -29,6 +29,12 @@ public class CoreService {
 
         final long start = System.nanoTime();
 
+        if (q.getDatasetId() == null) {
+            Error errorResource = new Error("Incomplete Query", "A valid dataset is required.");
+            Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
+            return new CoreResponse(q, elapsed, errorResource);
+        }
+
         if (q.getChromosome() == null && q.getDbSNP().isEmpty()) {
             Error errorResource = new Error("Incomplete Query", "Chromosome or dbSNP ID is required.");
             Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;

@@ -50,10 +50,10 @@ public class AsyncKuduCalls {
         return p;
     }
 
-    private static List<Integer> getSampleIds(KuduClient client, List<String> samples)
+    private static List<Integer> getSampleIds(KuduClient client, String tableName, List<String> samples)
             throws KuduException {
         List<Integer> sid = new LinkedList<>();
-        KuduTable table = client.openTable("samples");
+        KuduTable table = client.openTable(tableName);
         Schema schema = table.getSchema();
         for (String name: samples) {
             KuduScanner.KuduScannerBuilder ksb = client.newScannerBuilder(table);
@@ -105,7 +105,7 @@ public class AsyncKuduCalls {
         final KuduClient client = new KuduClient.KuduClientBuilder(prop.getProperty("kuduMaster")).build();
 
         try {
-            sampleIds = getSampleIds(client, samples);
+            sampleIds = getSampleIds(client, query.getDatasetId() + "_samples", samples);
             if (samples.size() != sampleIds.size())
                 throw new RuntimeException("Inconsistency: some samples have several Ids");
         } catch (Exception e) {
@@ -127,7 +127,7 @@ public class AsyncKuduCalls {
                 @Override
                 public KuduTable call(KuduTable table) { return table; }
             }
-            gtTable = asyncClient.openTable("gt").addCallback(new getTable()).join();
+            gtTable = asyncClient.openTable(query.getDatasetId() + "_gt").addCallback(new getTable()).join();
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e);

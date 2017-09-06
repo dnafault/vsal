@@ -64,7 +64,7 @@ public class KuduCalls {
 
         try {
             List<String> columns = Arrays.asList("contig", "start", "ref", "alt", "rsid", "vtype", "af", "ac", "homc", "hetc");
-            KuduScanner scanner = getScanner(client, "variants", columns, query, null);
+            KuduScanner scanner = getScanner(client, query.getDatasetId() + "_variants", columns, query, null);
             int i = 0;
             boolean unlim = query.getLimit() == null;
             int lim = (unlim) ? 0 : query.getLimit();
