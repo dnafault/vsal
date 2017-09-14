@@ -3,35 +3,15 @@ package au.org.garvan.vsal.kudu.service;
 import au.org.garvan.vsal.core.entity.CoreQuery;
 import au.org.garvan.vsal.core.entity.CoreVariant;
 import au.org.garvan.vsal.core.entity.VariantType;
+import au.org.garvan.vsal.core.util.ReadConfig;
 import org.apache.kudu.Schema;
 import org.apache.kudu.client.*;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.*;
 
 import static org.apache.kudu.client.KuduPredicate.newComparisonPredicate;
 
 public class KuduCalls {
-
-    private static final String propFileName = "vsal.properties";
-    private static final Properties prop = readConfig();
-
-    private static Properties readConfig() {
-        Properties p = new Properties();
-        try (InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(propFileName)) {
-            if (inputStream != null) {
-                p.load(inputStream);
-            } else {
-                System.out.println("Can't read properties from " + propFileName + ". Setting up Kudu Master as localhost:7051");
-                p.setProperty("kuduMaster","localhost:7051");
-            }
-        } catch (IOException e) {
-            System.out.println("Can't read properties from " + propFileName + ". Setting up Kudu Master as localhost:7051");
-            p.setProperty("kuduMaster","localhost:7051");
-        }
-        return p;
-    }
 
     private static KuduScanner getScanner(KuduClient client, String tableName, List<String> columns, CoreQuery query, Integer sampleId)
             throws KuduException {
@@ -60,7 +40,7 @@ public class KuduCalls {
 
     public static List<CoreVariant> variants(CoreQuery query) {
         List<CoreVariant> coreVariants = new ArrayList<>();
-        KuduClient client = new KuduClient.KuduClientBuilder(prop.getProperty("kuduMaster")).build();
+        KuduClient client = new KuduClient.KuduClientBuilder(ReadConfig.getProp().getProperty("kuduMaster")).build();
 
         try {
             List<String> columns = Arrays.asList("contig", "start", "ref", "alt", "rsid", "vtype", "af", "ac", "homc", "hetc");

@@ -3,13 +3,12 @@ package au.org.garvan.vsal.kudu.service;
 import au.org.garvan.vsal.core.entity.CoreQuery;
 import au.org.garvan.vsal.core.entity.CoreVariant;
 import au.org.garvan.vsal.core.entity.VariantType;
+import au.org.garvan.vsal.core.util.ReadConfig;
 import com.stumbleupon.async.Callback;
 import com.stumbleupon.async.Deferred;
 import org.apache.kudu.Schema;
 import org.apache.kudu.client.*;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.*;
 
 import static org.apache.kudu.client.KuduPredicate.newComparisonPredicate;
@@ -29,25 +28,6 @@ public class AsyncKuduCalls {
             this.cv = cv;
             this.gt = gt;
         }
-    }
-
-    private static final String propFileName = "vsal.properties";
-    private static final Properties prop = readConfig();
-
-    private static Properties readConfig() {
-        Properties p = new Properties();
-        try (InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(propFileName)) {
-            if (inputStream != null) {
-                p.load(inputStream);
-            } else {
-                System.out.println("Can't read properties from " + propFileName + ". Setting up Kudu Master as localhost:7051");
-                p.setProperty("kuduMaster","localhost:7051");
-            }
-        } catch (IOException e) {
-            System.out.println("Can't read properties from " + propFileName + ". Setting up Kudu Master as localhost:7051");
-            p.setProperty("kuduMaster","localhost:7051");
-        }
-        return p;
     }
 
     private static List<Integer> getSampleIds(KuduClient client, String tableName, List<String> samples)
@@ -102,7 +82,7 @@ public class AsyncKuduCalls {
 
     public static List<CoreVariant> variantsInVirtualCohort(CoreQuery query, List<String> samples) {
         List<Integer> sampleIds;
-        final KuduClient client = new KuduClient.KuduClientBuilder(prop.getProperty("kuduMaster")).build();
+        final KuduClient client = new KuduClient.KuduClientBuilder(ReadConfig.getProp().getProperty("kuduMaster")).build();
 
         try {
             sampleIds = getSampleIds(client, query.getDatasetId() + "_samples", samples);
@@ -120,7 +100,7 @@ public class AsyncKuduCalls {
         }
 
         KuduTable gtTable;
-        AsyncKuduClient asyncClient = new AsyncKuduClient.AsyncKuduClientBuilder(prop.getProperty("kuduMaster")).build();
+        AsyncKuduClient asyncClient = new AsyncKuduClient.AsyncKuduClientBuilder(ReadConfig.getProp().getProperty("kuduMaster")).build();
 
         try {
             final class getTable implements Callback<KuduTable, KuduTable> {
