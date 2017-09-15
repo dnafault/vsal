@@ -20,6 +20,7 @@ public class CoreQuery {
     private Reference reference;
     private Integer limit;
     private Integer skip;
+    private String jwt;
 
     private Boolean conj = false; // find variants that exist in all samples
     private Boolean returnAnnotations = false;
@@ -53,7 +54,7 @@ public class CoreQuery {
         this.reference = reference;
     }
 
-    public CoreQuery(Chromosome chromosome, Integer positionStart, Integer positionEnd, String refAllele, String altAllele, DatasetID datasetId, List<String> dbSNP, VariantType type, Reference reference, Integer limit, Integer skip, Boolean conj, Boolean returnAnnotations, List<String> samples, Gender gender, Integer yobStart, Integer yobEnd, Integer sbpStart, Integer sbpEnd, Float heightStart, Float heightEnd, Float weightStart, Float weightEnd, Integer abdCircStart, Integer abdCircEnd, Float glcStart, Float glcEnd) {
+    public CoreQuery(Chromosome chromosome, Integer positionStart, Integer positionEnd, String refAllele, String altAllele, DatasetID datasetId, List<String> dbSNP, VariantType type, Reference reference, Integer limit, Integer skip, String jwt, Boolean conj, Boolean returnAnnotations, List<String> samples, Gender gender, Integer yobStart, Integer yobEnd, Integer sbpStart, Integer sbpEnd, Float heightStart, Float heightEnd, Float weightStart, Float weightEnd, Integer abdCircStart, Integer abdCircEnd, Float glcStart, Float glcEnd) {
         this.chromosome = chromosome;
         this.positionStart = positionStart;
         this.positionEnd = positionEnd;
@@ -65,6 +66,7 @@ public class CoreQuery {
         this.reference = reference;
         this.limit = limit;
         this.skip = skip;
+        this.jwt = jwt;
         this.conj = conj;
         this.returnAnnotations = returnAnnotations;
         this.samples = samples;
@@ -169,6 +171,14 @@ public class CoreQuery {
 
     public void setSkip(Integer skip) {
         this.skip = skip;
+    }
+
+    public String getJwt() {
+        return jwt;
+    }
+
+    public void setJwt(String jwt) {
+        this.jwt = jwt;
     }
 
     public Boolean getConj() {

@@ -141,7 +141,7 @@ public class CoreQueryUtils {
      */
     public static CoreQuery getCoreQuery(String chromosome, Integer position_start, Integer position_end, String ref_allele,
                                          String alt_allele, String ref, String dataset, List<String> dbSNP,
-                                         String type, Integer limit, Integer skip,
+                                         String type, Integer limit, Integer skip, String jwt,
                                          // Annotations
                                          Boolean returnAnnotations,
                                          // Samples, csv
@@ -164,9 +164,9 @@ public class CoreQueryUtils {
         List<String> samples = (samplesAsCSV != null) ? Arrays.asList(samplesAsCSV.split("\\s*,\\s*")) : null;
         Boolean conj = (samplesConj == null) ? false : samplesConj;
 
-        return new CoreQuery(c, position_start, position_end, refAllele, altAllele, datasetId, dbSNP, variantType, r, lim,
-                skip, conj, retAnnot, samples, g, yobStart, yobEnd, sbpStart, sbpEnd, heightStart, heightEnd, weightStart, weightEnd,
-                abdCircStart, abdCircEnd, glcStart, glcEnd);
+        return new CoreQuery(c, position_start, position_end, refAllele, altAllele, datasetId, dbSNP, variantType, r,
+                lim, skip, jwt, conj, retAnnot, samples, g, yobStart, yobEnd, sbpStart, sbpEnd, heightStart, heightEnd,
+                weightStart, weightEnd, abdCircStart, abdCircEnd, glcStart, glcEnd);
     }
 
     /**

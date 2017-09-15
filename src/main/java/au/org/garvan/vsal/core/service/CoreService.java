@@ -5,9 +5,12 @@ import au.org.garvan.vsal.core.entity.CoreVariant;
 import au.org.garvan.vsal.core.entity.CoreQuery;
 import au.org.garvan.vsal.core.entity.CoreResponse;
 import au.org.garvan.vsal.core.rest.ClinDataCalls;
+import au.org.garvan.vsal.core.util.CoreJWT;
+import com.auth0.jwt.exceptions.JWTVerificationException;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.RequestScoped;
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 /**
@@ -67,6 +70,7 @@ public class CoreService {
              q.getWeightStart() != null || q.getWeightEnd() != null || q.getAbdCircStart() != null ||
              q.getAbdCircEnd() != null || q.getGlcStart() != null || q.getGlcEnd() != null ) {
             try {
+                CoreJWT.verifyJWT(q.getJwt());
                 samples = (q.getSamples() != null) ? q.getSamples() : new ClinDataCalls().getClinDataSamples(q);
                 if (samples == null || samples.isEmpty()) {
                     Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
@@ -76,6 +80,9 @@ public class CoreService {
                     Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
                     res = new CoreResponse(q, elapsed, samples.size(), vars, vars.size(), null, null);
                 }
+            } catch (UnsupportedEncodingException | JWTVerificationException e) {
+                Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
+                res = new CoreResponse(q, elapsed, 0, null, 0, null, "JWT verification failed: " + e.getMessage());
             } catch (Exception e) {
                 Error errorResource = new Error("VS Runtime Exception", e.getMessage());
                 Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;

@@ -48,6 +48,7 @@ public class CoreResource {
      * @param type type, [SNV, MNV, INDEL, SV, CNV]
      * @param limit limit for # of variants in response
      * @param skip # of skipped variants
+     * @param jwt # JWT
      * @param samples list of samples ids
      * @param conj variant conjunction in samples
      * @param returnAnnotations return annotations in variants
@@ -77,6 +78,7 @@ public class CoreResource {
                               @QueryParam("type") String type,
                               @QueryParam("limit") Integer limit,
                               @QueryParam("skip") Integer skip,
+                              @QueryParam("jwt") String jwt,
 
                               // Sample filtering
                               @QueryParam("samples") String samples, // csv
@@ -101,7 +103,7 @@ public class CoreResource {
                               @QueryParam("glcEnd") Float glcEnd) {
 
         CoreQuery coreQuery = CoreQueryUtils.getCoreQuery(chromosome, positionStart, positionEnd, refAllele,
-                altAllele, "hg19", dataset, dbSNP, type, limit, skip, returnAnnotations, samples, conj,
+                altAllele, "hg19", dataset, dbSNP, type, limit, skip, jwt, returnAnnotations, samples, conj,
                 // Clinical
                 gender, yobStart, yobEnd, sbpStart, sbpEnd, heightStart, heightEnd, weightStart, weightEnd,
                 abdCircStart, abdCircEnd, glcStart, glcEnd);
