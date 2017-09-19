@@ -70,19 +70,26 @@ public class CoreService {
              q.getWeightStart() != null || q.getWeightEnd() != null || q.getAbdCircStart() != null ||
              q.getAbdCircEnd() != null || q.getGlcStart() != null || q.getGlcEnd() != null ) {
             try {
-                CoreJWT.verifyJWT(q.getJwt());
-                samples = (q.getSamples() != null) ? q.getSamples() : new ClinDataCalls().getClinDataSamples(q);
-                if (samples == null || samples.isEmpty()) {
+                if (q.getJwt() == null) {
                     Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
-                    res = new CoreResponse(q, elapsed, 0, null, 0, null, "No samples selected");
+                    Error errorResource = new Error("JWT verification failed", "JWT is required for samples filtering");
+                    res = new CoreResponse(q, elapsed, errorResource);
                 } else {
-                    List<CoreVariant> vars = au.org.garvan.vsal.kudu.service.AsyncKuduCalls.variantsInVirtualCohort(q, samples);
-                    Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
-                    res = new CoreResponse(q, elapsed, samples.size(), vars, vars.size(), null, null);
+                    CoreJWT.verifyJWT(q.getJwt());
+                    samples = (q.getSamples() != null) ? q.getSamples() : new ClinDataCalls().getClinDataSamples(q);
+                    if (samples == null || samples.isEmpty()) {
+                        Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
+                        res = new CoreResponse(q, elapsed, 0, null, 0, null, "No samples selected");
+                    } else {
+                        List<CoreVariant> vars = au.org.garvan.vsal.kudu.service.AsyncKuduCalls.variantsInVirtualCohort(q, samples);
+                        Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
+                        res = new CoreResponse(q, elapsed, samples.size(), vars, vars.size(), null, null);
+                    }
                 }
             } catch (UnsupportedEncodingException | JWTVerificationException e) {
                 Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
-                res = new CoreResponse(q, elapsed, 0, null, 0, null, "JWT verification failed: " + e.getMessage());
+                Error errorResource = new Error("JWT verification failed", e.getMessage());
+                res = new CoreResponse(q, elapsed, errorResource);
             } catch (Exception e) {
                 Error errorResource = new Error("VS Runtime Exception", e.getMessage());
                 Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
