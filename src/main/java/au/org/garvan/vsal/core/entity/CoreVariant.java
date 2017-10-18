@@ -14,7 +14,7 @@ public class CoreVariant {
     private String t; // type
 
     // cohort-wide alt allele stats
-    private Integer     ac; // alt allele count
+    private Float       ac; // alt allele count
     private Float       af; // alt allele freq
     private Integer   homc; // alt allele hom count
     private Integer   hetc; // alt allele het count
@@ -29,7 +29,7 @@ public class CoreVariant {
         // needed for JAXB
     }
 
-    public CoreVariant(String c, Integer s, String rs, String a, String r, String t, Integer ac, Float af, Integer homc, Integer hetc, Integer vac, Float vaf, Integer vhomc, Integer vhetc) {
+    public CoreVariant(String c, Integer s, String rs, String a, String r, String t, Float ac, Float af, Integer homc, Integer hetc, Integer vac, Float vaf, Integer vhomc, Integer vhetc) {
         this.c = c;
         this.s = s;
         this.rs = rs;
@@ -120,11 +120,11 @@ public class CoreVariant {
         this.t = t;
     }
 
-    public Integer getAc() {
+    public Float getAc() {
         return ac;
     }
 
-    public void setAc(Integer ac) {
+    public void setAc(Float ac) {
         this.ac = ac;
     }
 
