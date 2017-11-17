@@ -45,13 +45,14 @@ public class CoreQuery {
         // needed for JAXB
     }
 
-    public CoreQuery(Chromosome chromosome, Integer positionStart, String altAllele, DatasetID datasetId, Reference reference) {
+    public CoreQuery(Chromosome chromosome, Integer positionStart, String altAllele, DatasetID datasetId, Reference reference, VariantType type) {
         this.chromosome = chromosome;
         this.positionStart = positionStart;
         this.positionEnd = positionStart;
         this.altAllele = altAllele;
         this.datasetId = datasetId;
         this.reference = reference;
+        this.type = type;
     }
 
     public CoreQuery(Chromosome chromosome, Integer positionStart, Integer positionEnd, String refAllele, String altAllele, DatasetID datasetId, List<String> dbSNP, VariantType type, Reference reference, Integer limit, Integer skip, String jwt, Boolean conj, Boolean returnAnnotations, List<String> samples, Gender gender, Integer yobStart, Integer yobEnd, Integer sbpStart, Integer sbpEnd, Float heightStart, Float heightEnd, Float weightStart, Float weightEnd, Integer abdCircStart, Integer abdCircEnd, Float glcStart, Float glcEnd) {

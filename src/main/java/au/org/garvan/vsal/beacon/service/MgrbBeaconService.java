@@ -78,7 +78,7 @@ public class MgrbBeaconService implements BeaconService {
             return new BeaconResponse(beacon.getId(), QueryUtils.getQuery(chrom, pos, allele, ref, dataset), responseResource);
         }
 
-        Query q = QueryUtils.getQuery(chrom, pos, allele, ref, dataset);
+        Query q = QueryUtils.getQuery(chrom, pos, allele, ref, dataset == null ? "MGRB" : dataset);
 
         // required parameters are incorrect
         if (q.getReference() == null || q.getReference() != Reference.HG19) {
@@ -101,7 +101,7 @@ public class MgrbBeaconService implements BeaconService {
 
         CoreQuery coreQuery = CoreQueryUtils.getCoreQuery(q.getChromosome().toString(),
                 q.getPosition()+1, // convert 0-based beacon protocol into 1-based VCF position
-                q.getAllele(), q.getReference().toString(), q.getDataset_id());
+                q.getAllele(), q.getReference().toString(), q.getDataset_id(), "SNV");
 
         try {
             int ac = 0;

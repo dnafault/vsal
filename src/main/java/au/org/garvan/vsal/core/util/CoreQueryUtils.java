@@ -172,13 +172,14 @@ public class CoreQueryUtils {
     /**
      * Obtains a canonical query object.
      */
-    public static CoreQuery getCoreQuery(String chromosome, Integer position, String alt_allele, String ref, String dataset) {
+    public static CoreQuery getCoreQuery(String chromosome, Integer position, String alt_allele, String ref, String dataset, String type) {
 
         Chromosome c = normalizeChromosome(chromosome);
         Reference r = normalizeReference(ref);
         String altAllele= normalizeAllele(alt_allele);
         DatasetID datasetId = DatasetID.fromString(dataset);
+        VariantType t = VariantType.fromString(type);
 
-        return new CoreQuery(c, position, altAllele, datasetId, r);
+        return new CoreQuery(c, position, altAllele, datasetId, r, t);
     }
 }

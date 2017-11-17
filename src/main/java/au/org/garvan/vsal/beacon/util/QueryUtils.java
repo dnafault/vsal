@@ -144,8 +144,7 @@ public class QueryUtils {
     public static Query getQuery(String chrom, Integer pos, String allele, String ref, String dataset) {
         Chromosome c = normalizeChromosome(chrom);
         Reference r = normalizeReference(ref);
-
-        return new Query(normalizeAllele(allele), c == null ? null : c, pos, r == null ? null : r, dataset);
+        return new Query(normalizeAllele(allele), c, pos, r, dataset);
     }
 
 }
