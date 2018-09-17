@@ -110,5 +110,4 @@ public class BeaconResponse implements Serializable {
     public String toString() {
         return "Response of '" + beacon_id + "' to '" + query + "': '" + response + "'";
     }
-
 }

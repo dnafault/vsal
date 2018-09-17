@@ -48,4 +48,3 @@ public enum VariantType {
         return null;
     }
 }
-
