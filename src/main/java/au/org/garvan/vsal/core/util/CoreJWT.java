@@ -9,13 +9,13 @@ import java.io.UnsupportedEncodingException;
 import java.util.Properties;
 
 public class CoreJWT {
-    public static void verifyJWT(String token)
+    public static void verifyJWT(String token, String jwtAccessValue)
             throws UnsupportedEncodingException, JWTVerificationException {
         Properties p = ReadConfig.getProp();
         Algorithm algorithm = Algorithm.HMAC256(p.getProperty("jwtKey"));
         JWTVerifier verifier = JWT.require(algorithm)
                 .withIssuer(p.getProperty("jwtIssuer"))
-                .withArrayClaim(p.getProperty("jwtAccessClaim"), p.getProperty("jwtAccessValue"))
+                .withArrayClaim(p.getProperty("jwtAccessClaim"), jwtAccessValue)
                 .build();
         verifier.verify(token);
     }

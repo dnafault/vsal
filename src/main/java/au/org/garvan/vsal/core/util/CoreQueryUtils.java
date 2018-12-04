@@ -1,10 +1,8 @@
-package au.org.garvan.vsal.core.util;
-
 /*
  * The MIT License
  *
  * Copyright 2014 Miroslav Cupak (mirocupak@gmail.com).
- * Copyright 2016 Dmitry Degrave
+ * Copyright 2018 Dmitry Degrave (dmeetry@gmail.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,11 +23,12 @@ package au.org.garvan.vsal.core.util;
  * THE SOFTWARE.
  */
 
+package au.org.garvan.vsal.core.util;
+
 import au.org.garvan.vsal.beacon.entity.Chromosome;
 import au.org.garvan.vsal.beacon.entity.Reference;
 import au.org.garvan.vsal.core.entity.CoreQuery;
 import au.org.garvan.vsal.core.entity.DatasetID;
-import au.org.garvan.vsal.core.entity.Gender;
 import au.org.garvan.vsal.core.entity.VariantType;
 
 import java.util.*;
@@ -63,7 +62,7 @@ public class CoreQueryUtils {
      * @param chrom chromosome
      * @return normalized chromosome value
      */
-    public static Chromosome normalizeChromosome(String chrom) {
+    private static Chromosome normalizeChromosome(String chrom) {
         // parse chrom value
         if (chrom != null) {
             String orig = chrom.toUpperCase();
@@ -95,7 +94,7 @@ public class CoreQueryUtils {
      * @param allele denormalized allele
      * @return normalized allele
      */
-    public static String normalizeAllele(String allele) {
+    private static String normalizeAllele(String allele) {
         if (allele == null || allele.isEmpty()) {
             return null;
         }
@@ -117,7 +116,7 @@ public class CoreQueryUtils {
      * @param ref denormalized genome
      * @return normalized genome
      */
-    public static Reference normalizeReference(String ref) {
+    private static Reference normalizeReference(String ref) {
         if (ref == null || ref.isEmpty()) {
             return null;
         }
@@ -142,31 +141,24 @@ public class CoreQueryUtils {
     public static CoreQuery getCoreQuery(String chromosome, Integer position_start, Integer position_end, String ref_allele,
                                          String alt_allele, String ref, String dataset, List<String> dbSNP,
                                          String type, Integer limit, Integer skip, String jwt,
-                                         // Annotations
                                          Boolean returnAnnotations,
-                                         // Samples, csv
                                          String samplesAsCSV,
                                          Boolean samplesConj,
-                                         // Clinical parameters
-                                         String gender, Integer yobStart, Integer yobEnd, Integer sbpStart, Integer sbpEnd,
-                                         Float heightStart, Float heightEnd, Float weightStart, Float weightEnd,
-                                         Integer abdCircStart, Integer abdCircEnd, Float glcStart, Float glcEnd) {
-
+                                         Boolean returnPheno) {
         Chromosome c = normalizeChromosome(chromosome);
         Reference r = normalizeReference(ref);
         String refAllele= normalizeAllele(ref_allele);
         String altAllele= normalizeAllele(alt_allele);
         DatasetID datasetId = DatasetID.fromString(dataset);
         VariantType variantType = VariantType.fromString(type);
-        Gender g = Gender.fromString(gender);
         Integer lim = (limit == null || limit < 0 || limit > MAX_VARIANTS) ? MAX_VARIANTS : limit; // production limits for Beta
-        Boolean retAnnot = (returnAnnotations == null) ? false : returnAnnotations;
-        List<String> samples = (samplesAsCSV != null) ? Arrays.asList(samplesAsCSV.split("\\s*,\\s*")) : null;
         Boolean conj = (samplesConj == null) ? false : samplesConj;
+        Boolean retAnnot = (returnAnnotations == null) ? false : returnAnnotations;
+        Boolean pheno = (returnPheno == null) ? false : returnPheno;
+        List<String> samples = (samplesAsCSV != null) ? Arrays.asList(samplesAsCSV.split("\\s*,\\s*")) : null;
 
         return new CoreQuery(c, position_start, position_end, refAllele, altAllele, datasetId, dbSNP, variantType, r,
-                lim, skip, jwt, conj, retAnnot, samples, g, yobStart, yobEnd, sbpStart, sbpEnd, heightStart, heightEnd,
-                weightStart, weightEnd, abdCircStart, abdCircEnd, glcStart, glcEnd);
+                lim, skip, jwt, conj, retAnnot, pheno, samples);
     }
 
     /**

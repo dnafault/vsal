@@ -21,25 +21,10 @@ public class CoreQuery {
     private Integer limit;
     private Integer skip;
     private String jwt;
-
     private Boolean conj = false; // find variants that exist in all samples
     private Boolean returnAnnotations = false;
+    private Boolean pheno = false;
     private List<String> samples;
-
-    // Clinical data
-    private Gender gender;
-    private Integer yobStart;
-    private Integer yobEnd;
-    private Integer sbpStart;
-    private Integer sbpEnd;
-    private Float heightStart;
-    private Float heightEnd;
-    private Float weightStart;
-    private Float weightEnd;
-    private Integer abdCircStart;
-    private Integer abdCircEnd;
-    private Float glcStart;
-    private Float glcEnd;
 
     public CoreQuery() {
         // needed for JAXB
@@ -55,7 +40,7 @@ public class CoreQuery {
         this.type = type;
     }
 
-    public CoreQuery(Chromosome chromosome, Integer positionStart, Integer positionEnd, String refAllele, String altAllele, DatasetID datasetId, List<String> dbSNP, VariantType type, Reference reference, Integer limit, Integer skip, String jwt, Boolean conj, Boolean returnAnnotations, List<String> samples, Gender gender, Integer yobStart, Integer yobEnd, Integer sbpStart, Integer sbpEnd, Float heightStart, Float heightEnd, Float weightStart, Float weightEnd, Integer abdCircStart, Integer abdCircEnd, Float glcStart, Float glcEnd) {
+    public CoreQuery(Chromosome chromosome, Integer positionStart, Integer positionEnd, String refAllele, String altAllele, DatasetID datasetId, List<String> dbSNP, VariantType type, Reference reference, Integer limit, Integer skip, String jwt, Boolean conj, Boolean returnAnnotations, Boolean pheno, List<String> samples) {
         this.chromosome = chromosome;
         this.positionStart = positionStart;
         this.positionEnd = positionEnd;
@@ -70,20 +55,8 @@ public class CoreQuery {
         this.jwt = jwt;
         this.conj = conj;
         this.returnAnnotations = returnAnnotations;
+        this.pheno = pheno;
         this.samples = samples;
-        this.gender = gender;
-        this.yobStart = yobStart;
-        this.yobEnd = yobEnd;
-        this.sbpStart = sbpStart;
-        this.sbpEnd = sbpEnd;
-        this.heightStart = heightStart;
-        this.heightEnd = heightEnd;
-        this.weightStart = weightStart;
-        this.weightEnd = weightEnd;
-        this.abdCircStart = abdCircStart;
-        this.abdCircEnd = abdCircEnd;
-        this.glcStart = glcStart;
-        this.glcEnd = glcEnd;
     }
 
     public Chromosome getChromosome() {
@@ -198,115 +171,19 @@ public class CoreQuery {
         this.returnAnnotations = returnAnnotations;
     }
 
+    public Boolean getPheno() {
+        return pheno;
+    }
+
+    public void setPheno(Boolean pheno) {
+        this.pheno = pheno;
+    }
+
     public List<String> getSamples() {
         return samples;
     }
 
     public void setSamples(List<String> samples) {
         this.samples = samples;
-    }
-
-    public Gender getGender() {
-        return gender;
-    }
-
-    public void setGender(Gender gender) {
-        this.gender = gender;
-    }
-
-    public Integer getYobStart() {
-        return yobStart;
-    }
-
-    public void setYobStart(Integer yobStart) {
-        this.yobStart = yobStart;
-    }
-
-    public Integer getYobEnd() {
-        return yobEnd;
-    }
-
-    public void setYobEnd(Integer yobEnd) {
-        this.yobEnd = yobEnd;
-    }
-
-    public Integer getSbpStart() {
-        return sbpStart;
-    }
-
-    public void setSbpStart(Integer sbpStart) {
-        this.sbpStart = sbpStart;
-    }
-
-    public Integer getSbpEnd() {
-        return sbpEnd;
-    }
-
-    public void setSbpEnd(Integer sbpEnd) {
-        this.sbpEnd = sbpEnd;
-    }
-
-    public Float getHeightStart() {
-        return heightStart;
-    }
-
-    public void setHeightStart(Float heightStart) {
-        this.heightStart = heightStart;
-    }
-
-    public Float getHeightEnd() {
-        return heightEnd;
-    }
-
-    public void setHeightEnd(Float heightEnd) {
-        this.heightEnd = heightEnd;
-    }
-
-    public Float getWeightStart() {
-        return weightStart;
-    }
-
-    public void setWeightStart(Float weightStart) {
-        this.weightStart = weightStart;
-    }
-
-    public Float getWeightEnd() {
-        return weightEnd;
-    }
-
-    public void setWeightEnd(Float weightEnd) {
-        this.weightEnd = weightEnd;
-    }
-
-    public Integer getAbdCircStart() {
-        return abdCircStart;
-    }
-
-    public void setAbdCircStart(Integer abdCircStart) {
-        this.abdCircStart = abdCircStart;
-    }
-
-    public Integer getAbdCircEnd() {
-        return abdCircEnd;
-    }
-
-    public void setAbdCircEnd(Integer abdCircEnd) {
-        this.abdCircEnd = abdCircEnd;
-    }
-
-    public Float getGlcStart() {
-        return glcStart;
-    }
-
-    public void setGlcStart(Float glcStart) {
-        this.glcStart = glcStart;
-    }
-
-    public Float getGlcEnd() {
-        return glcEnd;
-    }
-
-    public void setGlcEnd(Float glcEnd) {
-        this.glcEnd = glcEnd;
     }
 }

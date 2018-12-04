@@ -2,7 +2,7 @@ package au.org.garvan.vsal.core.entity;
 
 public enum DatasetID {
 
-    ASPREE("ASPREE"), MGRB("MGRB");
+    ASPREE("aspree"), MGRB("mgrb"), MITO("mito");
 
     private final String dataset;
 

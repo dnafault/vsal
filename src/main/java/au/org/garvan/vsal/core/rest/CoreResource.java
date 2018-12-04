@@ -11,7 +11,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -30,12 +29,12 @@ public class CoreResource {
     /**
      * VSAL REST end point: /find
      * <p>
-     * Either <b>chromosome</b> or <b>dbSNP</b> is required. <b>dataset</b> is always required. Everything else is optional.
+     * Either <b>chromosome</b> or <b>dbSNP</b> or <b>pheno</b> is required. <b>dataset</b> is always required. Everything else is optional.
      * <p>
      * E.g.
      * <pre><i>
-     * find?genes=TP53&dataset=ASPREE&count=true
      * find?chromosome=1&dataset=ASPREE&glcStart=8&glcEnd=10&limit=100
+     * find?pheno=true&dataset=MGRB
      * </i></pre>
      *
      * @param chromosome  chromosome, [1-22, X, Y, MT] or [Chr1-Chr22, ChrX, ChrY, ChrMT]
@@ -48,23 +47,11 @@ public class CoreResource {
      * @param type type, [SNV, MNV, INDEL, SV, CNV]
      * @param limit limit for # of variants in response
      * @param skip # of skipped variants
-     * @param jwt # JWT
+     * @param jwt JWT token
      * @param samples list of samples ids
-     * @param conj variant conjunction in samples
-     * @param returnAnnotations return annotations in variants
-     * @param gender gender, [female, male]
-     * @param yobStart yob, start of range, inclusive
-     * @param yobEnd yob, end of range, inclusive
-     * @param sbpStart systolic blood pressure, mm Hg, start of range, inclusive
-     * @param sbpEnd systolic blood pressure, mm Hg, end of range, inclusive
-     * @param heightStart height in metres, start of range, inclusive
-     * @param heightEnd height in metres, end of range, inclusive
-     * @param weightStart weight in kg, start of range, inclusive
-     * @param weightEnd weight in kg, end of range, inclusive
-     * @param abdCircStart abdominal circumference in cm, start of range, inclusive
-     * @param abdCircEnd abdominal circumference in cm, end of range, inclusive
-     * @param glcStart glucose level in blood, mmol/L, start of range, inclusive
-     * @param glcEnd glucose level in blood, mmol/L, end of range, inclusive
+     * @param conj variant conjunction in samples, boolean
+     * @param returnAnnotations return annotations in variants, boolean
+     * @param pheno return phenotypes, boolean
      * @return {@link CoreResponse}
      */
     @GET
@@ -79,34 +66,13 @@ public class CoreResource {
                               @QueryParam("limit") Integer limit,
                               @QueryParam("skip") Integer skip,
                               @QueryParam("jwt") String jwt,
-
-                              // Sample filtering
-                              @QueryParam("samples") String samples, // csv
+                              @QueryParam("samples") String samples,
                               @QueryParam("conj") Boolean conj,
-
-                              // Annotations
                               @QueryParam("returnAnnotations") Boolean returnAnnotations,
+                              @QueryParam("pheno") Boolean pheno) {
 
-                              // Clinical parameters
-                              @QueryParam("gender") String gender,
-                              @QueryParam("yobStart") Integer yobStart,
-                              @QueryParam("yobEnd") Integer yobEnd,
-                              @QueryParam("sbpStart") Integer sbpStart,
-                              @QueryParam("sbpEnd") Integer sbpEnd,
-                              @QueryParam("heightStart") Float heightStart,
-                              @QueryParam("heightEnd") Float heightEnd,
-                              @QueryParam("weightStart") Float weightStart,
-                              @QueryParam("weightEnd") Float weightEnd,
-                              @QueryParam("abdCircStart") Integer abdCircStart,
-                              @QueryParam("abdCircEnd") Integer abdCircEnd,
-                              @QueryParam("glcStart") Float glcStart,
-                              @QueryParam("glcEnd") Float glcEnd) {
-
-        CoreQuery coreQuery = CoreQueryUtils.getCoreQuery(chromosome, positionStart, positionEnd, refAllele,
-                altAllele, "hg19", dataset, dbSNP, type, limit, skip, jwt, returnAnnotations, samples, conj,
-                // Clinical
-                gender, yobStart, yobEnd, sbpStart, sbpEnd, heightStart, heightEnd, weightStart, weightEnd,
-                abdCircStart, abdCircEnd, glcStart, glcEnd);
+        CoreQuery coreQuery = CoreQueryUtils.getCoreQuery(chromosome, positionStart, positionEnd, refAllele, altAllele,
+                "hg19", dataset, dbSNP, type, limit, skip, jwt, returnAnnotations, samples, conj, pheno);
 
         return service.query(coreQuery);
     }

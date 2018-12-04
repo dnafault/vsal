@@ -15,6 +15,7 @@ public class CoreResponse {
     private int vcSize; // virtual cohort size
     private List<CoreVariant> v;
     private int total;
+    private String pheno;
     private Error error;
     private String status;
 
@@ -28,12 +29,13 @@ public class CoreResponse {
         this.error = error;
     }
 
-    public CoreResponse(CoreQuery coreQuery, Long vsalTime, int vcSize, List<CoreVariant> v, int total, Error error, String status) {
+    public CoreResponse(CoreQuery coreQuery, Long vsalTime, int vcSize, List<CoreVariant> v, int total, String pheno, Error error, String status) {
         this.coreQuery = coreQuery;
         this.vsalTime = vsalTime;
         this.vcSize = vcSize;
         this.v = v;
         this.total = total;
+        this.pheno = pheno;
         this.error = error;
         this.status = status;
     }
@@ -76,6 +78,14 @@ public class CoreResponse {
 
     public void setTotal(int total) {
         this.total = total;
+    }
+
+    public String getPheno() {
+        return pheno;
+    }
+
+    public void setPheno(String pheno) {
+        this.pheno = pheno;
     }
 
     public Error getError() {

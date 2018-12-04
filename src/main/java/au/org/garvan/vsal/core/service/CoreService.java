@@ -4,14 +4,18 @@ import au.org.garvan.vsal.beacon.entity.Error;
 import au.org.garvan.vsal.core.entity.CoreVariant;
 import au.org.garvan.vsal.core.entity.CoreQuery;
 import au.org.garvan.vsal.core.entity.CoreResponse;
-import au.org.garvan.vsal.core.rest.ClinDataCalls;
 import au.org.garvan.vsal.core.util.CoreJWT;
+import au.org.garvan.vsal.core.util.ReadConfig;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.RequestScoped;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.Properties;
 
 /**
  * VSAL core service.
@@ -33,13 +37,13 @@ public class CoreService {
         final long start = System.nanoTime();
 
         if (q.getDatasetId() == null) {
-            Error errorResource = new Error("Incomplete Query", "A valid dataset is required.");
+            Error errorResource = new Error("Incomplete Query", "A valid dataset is required");
             Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
             return new CoreResponse(q, elapsed, errorResource);
         }
 
-        if (q.getChromosome() == null && q.getDbSNP().isEmpty()) {
-            Error errorResource = new Error("Incomplete Query", "Chromosome or dbSNP ID is required.");
+        if (q.getChromosome() == null && q.getDbSNP().isEmpty() && !q.getPheno()) {
+            Error errorResource = new Error("Incomplete Query", "Chromosome or dbSNP ID or pheno is required");
             Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
             return new CoreResponse(q, elapsed, errorResource);
         }
@@ -63,27 +67,47 @@ public class CoreService {
         }
 
         List<String> samples;
-        CoreResponse res = null;
+        CoreResponse res;
 
-        if ( q.getSamples() != null  || q.getGender() != null || q.getYobStart() != null || q.getYobEnd() != null ||
-             q.getSbpStart() != null || q.getSbpEnd() != null || q.getHeightStart() != null || q.getHeightEnd() != null ||
-             q.getWeightStart() != null || q.getWeightEnd() != null || q.getAbdCircStart() != null ||
-             q.getAbdCircEnd() != null || q.getGlcStart() != null || q.getGlcEnd() != null ) {
+        if (q.getPheno()) {
+            try {
+                if (q.getJwt() == null) {
+                    Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
+                    Error errorResource = new Error("JWT verification failed", "JWT is required for phenotypes");
+                    res = new CoreResponse(q, elapsed, errorResource);
+                } else {
+                    CoreJWT.verifyJWT(q.getJwt(), q.getDatasetId() + "/pheno");
+                    Properties p = ReadConfig.getProp();
+                    String path = p.getProperty("phenoPath") + "/" + q.getDatasetId() + ".pheno.json";
+                    String pheno = new String(Files.readAllBytes(Paths.get(path)), StandardCharsets.UTF_8);
+                    Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
+                    res = new CoreResponse(q, elapsed, 0, null, 0, pheno, null, null);
+                }
+            } catch (UnsupportedEncodingException | JWTVerificationException e) {
+                Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
+                Error errorResource = new Error("JWT verification failed", e.getMessage());
+                res = new CoreResponse(q, elapsed, errorResource);
+            } catch (Exception e) {
+                Error errorResource = new Error("VS Runtime Exception", e.getMessage());
+                Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
+                res = new CoreResponse(q, elapsed, errorResource);
+            }
+        } else if (q.getSamples() != null) {
             try {
                 if (q.getJwt() == null) {
                     Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
                     Error errorResource = new Error("JWT verification failed", "JWT is required for samples filtering");
                     res = new CoreResponse(q, elapsed, errorResource);
                 } else {
-                    CoreJWT.verifyJWT(q.getJwt());
-                    samples = (q.getSamples() != null) ? q.getSamples() : new ClinDataCalls().getClinDataSamples(q);
-                    if (samples == null || samples.isEmpty()) {
+                    CoreJWT.verifyJWT(q.getJwt(), q.getDatasetId() + "/gt");
+                    samples = q.getSamples();
+                    if (samples.isEmpty()) {
                         Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
-                        res = new CoreResponse(q, elapsed, 0, null, 0, null, "No samples selected");
+                        res = new CoreResponse(q, elapsed, 0, null, 0, null, null, "No samples selected");
                     } else {
                         List<CoreVariant> vars = au.org.garvan.vsal.kudu.service.AsyncKuduCalls.variantsInVirtualCohort(q, samples);
                         Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
-                        res = new CoreResponse(q, elapsed, samples.size(), vars, vars.size(), null, null);
+                        res = new CoreResponse(q, elapsed, samples.size(), vars, vars.size(), null, null, null);
                     }
                 }
             } catch (UnsupportedEncodingException | JWTVerificationException e) {
@@ -99,7 +123,7 @@ public class CoreService {
             try {
                 List<CoreVariant> vars = au.org.garvan.vsal.kudu.service.KuduCalls.variants(q);
                 Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
-                res = new CoreResponse(q, elapsed, 0, vars, vars.size(), null, null);
+                res = new CoreResponse(q, elapsed, 0, vars, vars.size(), null, null, null);
             } catch (Exception e) {
                 Error errorResource = new Error("VS Runtime Exception", e.getMessage());
                 Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
