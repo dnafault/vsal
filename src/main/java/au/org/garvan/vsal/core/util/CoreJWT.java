@@ -16,6 +16,7 @@ public class CoreJWT {
         JWTVerifier verifier = JWT.require(algorithm)
                 .withIssuer(p.getProperty("jwtIssuer"))
                 .withArrayClaim(p.getProperty("jwtAccessClaim"), jwtAccessValue)
+                .acceptLeeway(12) // leeway window in seconds
                 .build();
         verifier.verify(token);
     }

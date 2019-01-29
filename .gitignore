@@ -38,3 +38,6 @@ nbactions*.xml
 # Maven
 *target*
 *.class
+
+# config
+src/main/resources/vsal.properties
