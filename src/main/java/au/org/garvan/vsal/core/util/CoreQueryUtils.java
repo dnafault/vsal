@@ -2,7 +2,7 @@
  * The MIT License
  *
  * Copyright 2014 Miroslav Cupak (mirocupak@gmail.com).
- * Copyright 2018 Dmitry Degrave (dmeetry@gmail.com)
+ * Copyright 2019 Dmitry Degrave (dmeetry@gmail.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
