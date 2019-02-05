@@ -101,9 +101,9 @@ public class CoreService {
                     Error errorResource = new Error("JWT verification failed", "JWT is required for phenotypes");
                     res = new CoreResponse(q, elapsed, errorResource);
                 } else {
-                    CoreJWT.verifyJWT(q.getJwt(), q.getDatasetId() + "/pheno");
+                    CoreJWT.verifyJWT(q.getJwt(), q.getDatasetId().toString().toLowerCase() + "/pheno");
                     Properties p = ReadConfig.getProp();
-                    String path = p.getProperty("phenoPath") + "/" + q.getDatasetId() + ".pheno.json";
+                    String path = p.getProperty("phenoPath") + "/" + q.getDatasetId().toString().toLowerCase() + ".pheno.json";
                     String pheno = new String(Files.readAllBytes(Paths.get(path)), StandardCharsets.UTF_8);
                     Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
                     res = new CoreResponse(q, elapsed, 0, null, 0, pheno, null, null);
@@ -124,7 +124,7 @@ public class CoreService {
                     Error errorResource = new Error("JWT verification failed", "JWT is required for samples filtering");
                     res = new CoreResponse(q, elapsed, errorResource);
                 } else {
-                    CoreJWT.verifyJWT(q.getJwt(), q.getDatasetId() + "/gt");
+                    CoreJWT.verifyJWT(q.getJwt(), q.getDatasetId().toString().toLowerCase() + "/gt");
                     samples = q.getSamples();
                     if (samples.isEmpty()) {
                         Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
