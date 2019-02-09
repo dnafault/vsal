@@ -94,24 +94,34 @@ public class AsyncKuduCalls {
         return sid;
     }
 
-    private static Map<Integer, String> getAllSamples(KuduClient client, String tableName)
-            throws KuduException {
-        Map<Integer, String> samples = new HashMap<>();
-        KuduTable table = client.openTable(tableName);
+    private static Map<Integer, String> getAllSamples(String tableName) {
+        Map<Integer, String> allSamples = new HashMap<>();
+        final KuduClient client = new KuduClient.KuduClientBuilder(ReadConfig.getProp().getProperty("kuduMaster")).build();
+        try {
+            KuduTable table = client.openTable(tableName);
+            KuduScanner.KuduScannerBuilder ksb = client.newScannerBuilder(table);
+            ksb.setProjectedColumnNames(Arrays.asList("sample_id", "sample_name"));
+            KuduScanner scanner = ksb.build();
 
-        KuduScanner.KuduScannerBuilder ksb = client.newScannerBuilder(table);
-        ksb.setProjectedColumnNames(Arrays.asList("sample_id", "sample_name"));
-        KuduScanner scanner = ksb.build();
-
-        while (scanner.hasMoreRows()) {
-            RowResultIterator results = scanner.nextRows();
-            while (results != null && results.hasNext()) {
-                RowResult result = results.next();
-                samples.put(result.getInt(0), result.getString(1));
+            while (scanner.hasMoreRows()) {
+                RowResultIterator results = scanner.nextRows();
+                while (results != null && results.hasNext()) {
+                    RowResult result = results.next();
+                    allSamples.put(result.getInt(0), result.getString(1));
+                }
+            }
+            scanner.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                client.close();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
-        scanner.close();
-        return samples;
+        return allSamples;
     }
 
     private static AsyncKuduScanner getAsyncScanner(AsyncKuduClient client, KuduTable gtTable, List<String> columns, CoreQuery query, Integer sampleId)
@@ -257,20 +267,7 @@ public class AsyncKuduCalls {
         // saved as a boolean flag per sample
         // implementation similar to variantsInVirtualCohort(), but doesn't keep variants - only flags
 
-        Map<Integer, String> allSamples;
-        final KuduClient client = new KuduClient.KuduClientBuilder(ReadConfig.getProp().getProperty("kuduMaster")).build();
-        try {
-            allSamples = getAllSamples(client, query.getDatasetId() + "_samples");
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        } finally {
-            try {
-                client.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+        Map<Integer, String> allSamples = getAllSamples(query.getDatasetId() + "_samples");
 
         AsyncKuduClient asyncClient = new AsyncKuduClient.AsyncKuduClientBuilder(ReadConfig.getProp().getProperty("kuduMaster")).build();
         KuduTable gtTable = addCallBackToTable(asyncClient, query.getDatasetId() + "_gt");
@@ -338,7 +335,6 @@ public class AsyncKuduCalls {
 
         return selectedSamplesNames;
     }
-
 
     private static KuduTable addCallBackToTable(AsyncKuduClient asyncClient, String tbl) {
         try {
