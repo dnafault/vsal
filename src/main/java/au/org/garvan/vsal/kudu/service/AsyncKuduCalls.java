@@ -55,27 +55,41 @@ public class AsyncKuduCalls {
         }
     }
 
-    private static List<Integer> getSampleIDsByNames(KuduClient client, String tableName, List<String> samples)
-            throws KuduException {
+    private static List<Integer> getSampleIDsByNames(String tableName, List<String> samples) {
         List<Integer> sid = new LinkedList<>();
-        KuduTable table = client.openTable(tableName);
-        Schema schema = table.getSchema();
-        for (String name : samples) {
-            KuduScanner.KuduScannerBuilder ksb = client.newScannerBuilder(table);
-            ksb.setProjectedColumnNames(Collections.singletonList("sample_id"));
-            ksb.addPredicate(newComparisonPredicate(schema.getColumn("sample_name"), KuduPredicate.ComparisonOp.EQUAL, name));
-            KuduScanner scanner = ksb.build();
-            boolean found = false;
-            while (scanner.hasMoreRows()) {
-                RowResultIterator results = scanner.nextRows();
-                while (results != null && results.hasNext()) {
-                    sid.add(results.next().getInt(0));
-                    found = true;
+        final KuduClient client = new KuduClient.KuduClientBuilder(ReadConfig.getProp().getProperty("kuduMaster")).build();
+
+        try {
+            KuduTable table = client.openTable(tableName);
+            Schema schema = table.getSchema();
+            for (String name : samples) {
+                KuduScanner.KuduScannerBuilder ksb = client.newScannerBuilder(table);
+                ksb.setProjectedColumnNames(Collections.singletonList("sample_id"));
+                ksb.addPredicate(newComparisonPredicate(schema.getColumn("sample_name"), KuduPredicate.ComparisonOp.EQUAL, name));
+                KuduScanner scanner = ksb.build();
+                boolean found = false;
+                while (scanner.hasMoreRows()) {
+                    RowResultIterator results = scanner.nextRows();
+                    while (results != null && results.hasNext()) {
+                        sid.add(results.next().getInt(0));
+                        found = true;
+                    }
                 }
+                scanner.close();
+                if (!found)
+                    throw new RuntimeException("Inconsistency - sample doesn't exist: " + name);
             }
-            scanner.close();
-            if (!found)
-                throw new RuntimeException("Inconsistency - sample doesn't exist: " + name);
+            if (samples.size() != sid.size())
+                throw new RuntimeException("Inconsistency: some samples have several Ids");
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                client.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         return sid;
     }
@@ -125,25 +139,7 @@ public class AsyncKuduCalls {
     }
 
 
-    public static List<CoreVariant> variantsInVirtualCohort(CoreQuery query, List<String> samples) {
-        List<Integer> sampleIds;
-        final KuduClient client = new KuduClient.KuduClientBuilder(ReadConfig.getProp().getProperty("kuduMaster")).build();
-
-        try {
-            sampleIds = getSampleIDsByNames(client, query.getDatasetId() + "_samples", samples);
-            if (samples.size() != sampleIds.size())
-                throw new RuntimeException("Inconsistency: some samples have several Ids");
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        } finally {
-            try {
-                client.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
+    private static Map<Integer, List<Variant>> asyncVariantsBySample(CoreQuery query, List<Integer> sampleIds) {
         AsyncKuduClient asyncClient = new AsyncKuduClient.AsyncKuduClientBuilder(ReadConfig.getProp().getProperty("kuduMaster")).build();
         KuduTable gtTable = addCallBackToTable(asyncClient, query.getDatasetId() + "_gt");
         List<AsyncKuduScanner> sampleScanners = new LinkedList<>();
@@ -209,10 +205,18 @@ public class AsyncKuduCalls {
             }
         }
 
+        return variantsBySamples;
+    }
+
+    public static List<CoreVariant> variantsInVirtualCohort(CoreQuery query, List<String> samples) {
+        // calls to Kudu
+        List<Integer> sampleIds = getSampleIDsByNames(query.getDatasetId() + "_samples", samples);
+        Map<Integer, List<Variant>> variantsBySamples = asyncVariantsBySample(query, sampleIds);
+
+        // Select unique variants
         boolean first = true;
         boolean conj = query.getConj();
         Map<CoreVariant, Counters> uniqueVariants = new HashMap<>();
-
         for (List<Variant> sv : variantsBySamples.values()) {
             for (Variant v : sv) {
                 Counters c = (uniqueVariants.containsKey(v.cv)) ? uniqueVariants.get(v.cv) : new Counters();
@@ -232,7 +236,6 @@ public class AsyncKuduCalls {
         boolean unlim = query.getLimit() == null;
         int lim = (unlim) ? 0 : query.getLimit();
         List<CoreVariant> coreVariants = new ArrayList<>(uniqueVariants.size());
-
         for (Map.Entry<CoreVariant, Counters> entry : uniqueVariants.entrySet()) {
             if (!unlim && i >= lim) break;
             CoreVariant cv = entry.getKey();
