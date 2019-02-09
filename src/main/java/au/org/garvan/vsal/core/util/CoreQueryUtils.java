@@ -141,9 +141,10 @@ public class CoreQueryUtils {
     public static CoreQuery getCoreQuery(String chromosome, Integer position_start, Integer position_end, String ref_allele,
                                          String alt_allele, String ref, String dataset, List<String> dbSNP,
                                          String type, Integer limit, Integer skip, String jwt,
-                                         Boolean returnAnnotations,
                                          String samplesAsCSV,
                                          Boolean samplesConj,
+                                         Boolean selectSamplesByGT,
+                                         Boolean returnAnnotations,
                                          Boolean returnPheno) {
         Chromosome c = normalizeChromosome(chromosome);
         Reference r = normalizeReference(ref);
@@ -153,12 +154,13 @@ public class CoreQueryUtils {
         VariantType variantType = VariantType.fromString(type);
         Integer lim = (limit == null || limit < 0 || limit > MAX_VARIANTS) ? MAX_VARIANTS : limit; // production limits for Beta
         Boolean conj = (samplesConj == null) ? false : samplesConj;
+        Boolean selectSamples = (selectSamplesByGT == null) ? false : selectSamplesByGT;
         Boolean retAnnot = (returnAnnotations == null) ? false : returnAnnotations;
         Boolean pheno = (returnPheno == null) ? false : returnPheno;
         List<String> samples = (samplesAsCSV != null) ? Arrays.asList(samplesAsCSV.split("\\s*,\\s*")) : null;
 
         return new CoreQuery(c, position_start, position_end, refAllele, altAllele, datasetId, dbSNP, variantType, r,
-                lim, skip, jwt, conj, retAnnot, pheno, samples);
+                lim, skip, jwt, samples, conj, selectSamples, retAnnot, pheno);
     }
 
     /**

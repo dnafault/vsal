@@ -75,6 +75,7 @@ public class CoreResource {
      * @param jwt JWT token
      * @param samples list of samples ids
      * @param conj variant conjunction in samples, boolean
+     * @param selectSamplesByGT return samples instead of variants, boolean
      * @param returnAnnotations return annotations in variants, boolean
      * @param pheno return phenotypes, boolean
      * @return {@link CoreResponse}
@@ -93,11 +94,12 @@ public class CoreResource {
                               @QueryParam("jwt") String jwt,
                               @QueryParam("samples") String samples,
                               @QueryParam("conj") Boolean conj,
+                              @QueryParam("selectSamplesByGT") Boolean selectSamplesByGT,
                               @QueryParam("returnAnnotations") Boolean returnAnnotations,
                               @QueryParam("pheno") Boolean pheno) {
 
         CoreQuery coreQuery = CoreQueryUtils.getCoreQuery(chromosome, positionStart, positionEnd, refAllele, altAllele,
-                "hg19", dataset, dbSNP, type, limit, skip, jwt, returnAnnotations, samples, conj, pheno);
+                "hg19", dataset, dbSNP, type, limit, skip, jwt, samples, conj, selectSamplesByGT, returnAnnotations, pheno);
 
         return service.query(coreQuery);
     }

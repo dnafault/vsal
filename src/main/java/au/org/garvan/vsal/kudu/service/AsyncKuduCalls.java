@@ -41,7 +41,7 @@ import static org.apache.kudu.client.KuduPredicate.newComparisonPredicate;
 public class AsyncKuduCalls {
 
     private static class Counters {
-        int sc   = 0; // alt allele sample count
+        int sc = 0;   // alt allele sample count
         int homc = 0; // alt allele hom count
     }
 
@@ -55,12 +55,12 @@ public class AsyncKuduCalls {
         }
     }
 
-    private static List<Integer> getSampleIds(KuduClient client, String tableName, List<String> samples)
+    private static List<Integer> getSampleIDsByNames(KuduClient client, String tableName, List<String> samples)
             throws KuduException {
         List<Integer> sid = new LinkedList<>();
         KuduTable table = client.openTable(tableName);
         Schema schema = table.getSchema();
-        for (String name: samples) {
+        for (String name : samples) {
             KuduScanner.KuduScannerBuilder ksb = client.newScannerBuilder(table);
             ksb.setProjectedColumnNames(Collections.singletonList("sample_id"));
             ksb.addPredicate(newComparisonPredicate(schema.getColumn("sample_name"), KuduPredicate.ComparisonOp.EQUAL, name));
@@ -78,6 +78,26 @@ public class AsyncKuduCalls {
                 throw new RuntimeException("Inconsistency - sample doesn't exist: " + name);
         }
         return sid;
+    }
+
+    private static Map<Integer, String> getAllSamples(KuduClient client, String tableName)
+            throws KuduException {
+        Map<Integer, String> samples = new HashMap<>();
+        KuduTable table = client.openTable(tableName);
+
+        KuduScanner.KuduScannerBuilder ksb = client.newScannerBuilder(table);
+        ksb.setProjectedColumnNames(Arrays.asList("sample_id", "sample_name"));
+        KuduScanner scanner = ksb.build();
+
+        while (scanner.hasMoreRows()) {
+            RowResultIterator results = scanner.nextRows();
+            while (results != null && results.hasNext()) {
+                RowResult result = results.next();
+                samples.put(result.getInt(0), result.getString(1));
+            }
+        }
+        scanner.close();
+        return samples;
     }
 
     private static AsyncKuduScanner getAsyncScanner(AsyncKuduClient client, KuduTable gtTable, List<String> columns, CoreQuery query, Integer sampleId)
@@ -110,7 +130,7 @@ public class AsyncKuduCalls {
         final KuduClient client = new KuduClient.KuduClientBuilder(ReadConfig.getProp().getProperty("kuduMaster")).build();
 
         try {
-            sampleIds = getSampleIds(client, query.getDatasetId() + "_samples", samples);
+            sampleIds = getSampleIDsByNames(client, query.getDatasetId() + "_samples", samples);
             if (samples.size() != sampleIds.size())
                 throw new RuntimeException("Inconsistency: some samples have several Ids");
         } catch (Exception e) {
@@ -124,21 +144,10 @@ public class AsyncKuduCalls {
             }
         }
 
-        KuduTable gtTable;
         AsyncKuduClient asyncClient = new AsyncKuduClient.AsyncKuduClientBuilder(ReadConfig.getProp().getProperty("kuduMaster")).build();
-
-        try {
-            final class getTable implements Callback<KuduTable, KuduTable> {
-                @Override
-                public KuduTable call(KuduTable table) { return table; }
-            }
-            gtTable = asyncClient.openTable(query.getDatasetId() + "_gt").addCallback(new getTable()).join();
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
-
+        KuduTable gtTable = addCallBackToTable(asyncClient, query.getDatasetId() + "_gt");
         List<AsyncKuduScanner> sampleScanners = new LinkedList<>();
+
         Map<Integer, List<Variant>> variantsBySamples = new HashMap<>(sampleIds.size());
         Map<Integer, Deferred<List<Variant>>> deferredVariantsBySamples = new HashMap<>(sampleIds.size());
         List<String> columns = Arrays.asList("contig", "start", "ref", "alt", "rsid", "vtype", "gt");
@@ -238,5 +247,108 @@ public class AsyncKuduCalls {
         }
 
         return coreVariants;
+    }
+
+    public static List<String> selectSamplesByGT(CoreQuery query) {
+        // detects variant existence in a region for all sample IDs
+        // saved as a boolean flag per sample
+        // implementation similar to variantsInVirtualCohort(), but doesn't keep variants - only flags
+
+        Map<Integer, String> allSamples;
+        final KuduClient client = new KuduClient.KuduClientBuilder(ReadConfig.getProp().getProperty("kuduMaster")).build();
+        try {
+            allSamples = getAllSamples(client, query.getDatasetId() + "_samples");
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                client.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        AsyncKuduClient asyncClient = new AsyncKuduClient.AsyncKuduClientBuilder(ReadConfig.getProp().getProperty("kuduMaster")).build();
+        KuduTable gtTable = addCallBackToTable(asyncClient, query.getDatasetId() + "_gt");
+        List<AsyncKuduScanner> sampleScanners = new LinkedList<>();
+
+        Set<Integer> sampleIds = allSamples.keySet();
+        Map<Integer, Boolean> bySamples = new HashMap<>(sampleIds.size());
+        Map<Integer, Deferred<Boolean>> deferredBySamples = new HashMap<>(sampleIds.size());
+        List<String> columns = Arrays.asList("sample_id");
+
+        try {
+            final class AsyncVariantsExistBySample {
+                final private AsyncKuduScanner asyncScanner;
+
+                private AsyncVariantsExistBySample(AsyncKuduScanner asyncScanner) {
+                    this.asyncScanner = asyncScanner;
+                }
+
+                final class AsyncProcessRows implements Callback<Deferred<Boolean>, RowResultIterator> {
+                    private Boolean res = false;
+
+                    @Override
+                    public Deferred<Boolean> call(RowResultIterator results) {
+                        if (results != null && results.hasNext()) {
+                            res = true; // there is at least one variant in a region in a given sample
+                        }
+                        return Deferred.fromResult(res);
+                    }
+                }
+
+                private Deferred<Boolean> processAllRows() {
+                    return asyncScanner.nextRows().addBothDeferring(new AsyncProcessRows());
+                }
+            }
+
+            // async calls
+            for (Integer sid : sampleIds) {
+                final AsyncKuduScanner asyncScanner = getAsyncScanner(asyncClient, gtTable, columns, query, sid);
+                sampleScanners.add(asyncScanner); // to close them later
+                final AsyncVariantsExistBySample allVars = new AsyncVariantsExistBySample(asyncScanner);
+                deferredBySamples.put(sid, allVars.processAllRows());
+            }
+
+            // sync deferred
+            for (Integer sid : deferredBySamples.keySet()) {
+                bySamples.put(sid, deferredBySamples.get(sid).join());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                for (AsyncKuduScanner s : sampleScanners) s.close();
+                asyncClient.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        List<String> selectedSamplesNames = new LinkedList<>();
+        for (Integer sid : bySamples.keySet()) {
+            if (bySamples.get(sid))
+                selectedSamplesNames.add(allSamples.get(sid));
+        }
+
+        return selectedSamplesNames;
+    }
+
+
+    private static KuduTable addCallBackToTable(AsyncKuduClient asyncClient, String tbl) {
+        try {
+            final class getTable implements Callback<KuduTable, KuduTable> {
+                @Override
+                public KuduTable call(KuduTable table) {
+                    return table;
+                }
+            }
+            return asyncClient.openTable(tbl).addCallback(new getTable()).join();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 }

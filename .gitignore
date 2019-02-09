@@ -39,5 +39,3 @@ nbactions*.xml
 *target*
 *.class
 
-# config
-src/main/resources/vsal.properties

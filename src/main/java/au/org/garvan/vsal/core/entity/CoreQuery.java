@@ -46,10 +46,11 @@ public class CoreQuery {
     private Integer limit;
     private Integer skip;
     private String jwt;
+    private List<String> samples;
     private Boolean conj = false; // find variants that exist in all samples
+    private Boolean selectSamplesByGT = false;
     private Boolean returnAnnotations = false;
     private Boolean pheno = false;
-    private List<String> samples;
 
     public CoreQuery() {
         // needed for JAXB
@@ -65,7 +66,7 @@ public class CoreQuery {
         this.type = type;
     }
 
-    public CoreQuery(Chromosome chromosome, Integer positionStart, Integer positionEnd, String refAllele, String altAllele, DatasetID datasetId, List<String> dbSNP, VariantType type, Reference reference, Integer limit, Integer skip, String jwt, Boolean conj, Boolean returnAnnotations, Boolean pheno, List<String> samples) {
+    public CoreQuery(Chromosome chromosome, Integer positionStart, Integer positionEnd, String refAllele, String altAllele, DatasetID datasetId, List<String> dbSNP, VariantType type, Reference reference, Integer limit, Integer skip, String jwt, List<String> samples, Boolean conj, Boolean selectSamplesByGT, Boolean returnAnnotations, Boolean pheno) {
         this.chromosome = chromosome;
         this.positionStart = positionStart;
         this.positionEnd = positionEnd;
@@ -78,10 +79,11 @@ public class CoreQuery {
         this.limit = limit;
         this.skip = skip;
         this.jwt = jwt;
+        this.samples = samples;
         this.conj = conj;
+        this.selectSamplesByGT = selectSamplesByGT;
         this.returnAnnotations = returnAnnotations;
         this.pheno = pheno;
-        this.samples = samples;
     }
 
     public Chromosome getChromosome() {
@@ -180,12 +182,28 @@ public class CoreQuery {
         this.jwt = jwt;
     }
 
+    public List<String> getSamples() {
+        return samples;
+    }
+
+    public void setSamples(List<String> samples) {
+        this.samples = samples;
+    }
+
     public Boolean getConj() {
         return conj;
     }
 
     public void setConj(Boolean conj) {
         this.conj = conj;
+    }
+
+    public Boolean getSelectSamplesByGT() {
+        return selectSamplesByGT;
+    }
+
+    public void setSelectSamplesByGT(Boolean selectSamplesByGT) {
+        this.selectSamplesByGT = selectSamplesByGT;
     }
 
     public Boolean getReturnAnnotations() {
@@ -202,13 +220,5 @@ public class CoreQuery {
 
     public void setPheno(Boolean pheno) {
         this.pheno = pheno;
-    }
-
-    public List<String> getSamples() {
-        return samples;
-    }
-
-    public void setSamples(List<String> samples) {
-        this.samples = samples;
     }
 }

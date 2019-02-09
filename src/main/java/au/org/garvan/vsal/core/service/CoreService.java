@@ -106,7 +106,28 @@ public class CoreService {
                     String path = p.getProperty("phenoPath") + "/" + q.getDatasetId().toString().toLowerCase() + ".pheno.json";
                     String pheno = new String(Files.readAllBytes(Paths.get(path)), StandardCharsets.UTF_8);
                     Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
-                    res = new CoreResponse(q, elapsed, 0, null, 0, pheno, null, null);
+                    res = new CoreResponse(q, elapsed, 0, null, 0, null, pheno, null, null);
+                }
+            } catch (UnsupportedEncodingException | JWTVerificationException e) {
+                Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
+                Error errorResource = new Error("JWT verification failed", e.getMessage());
+                res = new CoreResponse(q, elapsed, errorResource);
+            } catch (Exception e) {
+                Error errorResource = new Error("VS Runtime Exception", e.getMessage());
+                Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
+                res = new CoreResponse(q, elapsed, errorResource);
+            }
+        } else if (q.getSelectSamplesByGT()) {
+            try {
+                if (q.getJwt() == null) {
+                    Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
+                    Error errorResource = new Error("JWT verification failed", "JWT is required for samples selection");
+                    res = new CoreResponse(q, elapsed, errorResource);
+                } else {
+                    CoreJWT.verifyJWT(q.getJwt(), q.getDatasetId().toString().toLowerCase() + "/gt");
+                    List<String> sampleIDs = au.org.garvan.vsal.kudu.service.AsyncKuduCalls.selectSamplesByGT(q);
+                    Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
+                    res = new CoreResponse(q, elapsed, sampleIDs.size(), null, 0, sampleIDs, null, null, null);
                 }
             } catch (UnsupportedEncodingException | JWTVerificationException e) {
                 Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
@@ -128,11 +149,11 @@ public class CoreService {
                     samples = q.getSamples();
                     if (samples.isEmpty()) {
                         Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
-                        res = new CoreResponse(q, elapsed, 0, null, 0, null, null, "No samples selected");
+                        res = new CoreResponse(q, elapsed, 0, null, 0, null, null, null, "No samples selected");
                     } else {
                         List<CoreVariant> vars = au.org.garvan.vsal.kudu.service.AsyncKuduCalls.variantsInVirtualCohort(q, samples);
                         Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
-                        res = new CoreResponse(q, elapsed, samples.size(), vars, vars.size(), null, null, null);
+                        res = new CoreResponse(q, elapsed, samples.size(), vars, vars.size(), null, null, null, null);
                     }
                 }
             } catch (UnsupportedEncodingException | JWTVerificationException e) {
@@ -148,7 +169,7 @@ public class CoreService {
             try {
                 List<CoreVariant> vars = au.org.garvan.vsal.kudu.service.KuduCalls.variants(q);
                 Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
-                res = new CoreResponse(q, elapsed, 0, vars, vars.size(), null, null, null);
+                res = new CoreResponse(q, elapsed, 0, vars, vars.size(), null, null, null, null);
             } catch (Exception e) {
                 Error errorResource = new Error("VS Runtime Exception", e.getMessage());
                 Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;

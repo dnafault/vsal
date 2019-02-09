@@ -98,6 +98,6 @@ public class KuduCalls {
                 e.printStackTrace();
             }
         }
-        return (coreVariants);
+        return coreVariants;
     }
 }
