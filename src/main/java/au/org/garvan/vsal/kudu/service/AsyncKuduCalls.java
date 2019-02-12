@@ -62,7 +62,7 @@ public class AsyncKuduCalls {
         try {
             KuduTable table = client.openTable(tableName);
             Schema schema = table.getSchema();
-            for (String name : samples) {
+            for (String name: samples) {
                 KuduScanner.KuduScannerBuilder ksb = client.newScannerBuilder(table);
                 ksb.setProjectedColumnNames(Collections.singletonList("sample_id"));
                 ksb.addPredicate(newComparisonPredicate(schema.getColumn("sample_name"), KuduPredicate.ComparisonOp.EQUAL, name));
@@ -94,6 +94,223 @@ public class AsyncKuduCalls {
         return sid;
     }
 
+    private static AsyncKuduScanner getAsyncScannerGT(AsyncKuduClient client, KuduTable gtTable, List<String> columns, CoreQuery query, Integer sampleId)
+            throws KuduException {
+        Schema schema = gtTable.getSchema();
+        AsyncKuduScanner.AsyncKuduScannerBuilder aksb = client.newScannerBuilder(gtTable);
+        aksb.setProjectedColumnNames(columns);
+        if (query.getChromosome() != null)
+            aksb.addPredicate(newComparisonPredicate(schema.getColumn("contig"), KuduPredicate.ComparisonOp.EQUAL, query.getChromosome().toString()));
+        if (query.getPositionStart() != null)
+            aksb.addPredicate(newComparisonPredicate(schema.getColumn("start"), KuduPredicate.ComparisonOp.GREATER_EQUAL, query.getPositionStart()));
+        if (query.getPositionEnd() != null)
+            aksb.addPredicate(newComparisonPredicate(schema.getColumn("start"), KuduPredicate.ComparisonOp.LESS_EQUAL, query.getPositionEnd()));
+        if (query.getType() != null)
+            aksb.addPredicate(newComparisonPredicate(schema.getColumn("vtype"), KuduPredicate.ComparisonOp.EQUAL, query.getType().toByte()));
+        if (query.getRefAllele() != null && !query.getRefAllele().isEmpty())
+            aksb.addPredicate(newComparisonPredicate(schema.getColumn("ref"), KuduPredicate.ComparisonOp.EQUAL, query.getRefAllele()));
+        if (query.getAltAllele() != null && !query.getAltAllele().isEmpty())
+            aksb.addPredicate(newComparisonPredicate(schema.getColumn("alt"), KuduPredicate.ComparisonOp.EQUAL, query.getAltAllele()));
+        if (query.getDbSNP() != null && !query.getDbSNP().isEmpty())
+            aksb.addPredicate(newComparisonPredicate(schema.getColumn("rsid"), KuduPredicate.ComparisonOp.EQUAL, query.getDbSNP().get(0)));
+        if (sampleId != null)
+            aksb.addPredicate(newComparisonPredicate(schema.getColumn("sample_id"), KuduPredicate.ComparisonOp.EQUAL, sampleId));
+        return aksb.build();
+    }
+
+
+    private static Map<Integer, List<Variant>> asyncVariantsBySample(CoreQuery query, List<Integer> sampleIds) {
+        AsyncKuduClient asyncClient = new AsyncKuduClient.AsyncKuduClientBuilder(ReadConfig.getProp().getProperty("kuduMaster")).build();
+        KuduTable gtTable = addCallBackToTable(asyncClient, query.getDatasetId() + "_gt");
+        List<AsyncKuduScanner> sampleScanners = new LinkedList<>(); // to close them later
+
+        Map<Integer, List<Variant>> variantsBySamples = new HashMap<>(sampleIds.size());
+        Map<Integer, Deferred<List<Variant>>> deferredVariantsBySamples = new HashMap<>(sampleIds.size());
+        List<String> columns = Arrays.asList("contig", "start", "ref", "alt", "rsid", "vtype", "gt"); // projection
+
+        try {
+            final class AsyncVariantsBySample {
+                final private AsyncKuduScanner asyncScanner;
+
+                private AsyncVariantsBySample(AsyncKuduScanner asyncScanner) {
+                    this.asyncScanner = asyncScanner;
+                }
+
+                final class AsyncProcessRows implements Callback<Deferred<List<Variant>>, RowResultIterator> {
+                    private final List<Variant> res = new LinkedList<>();
+                    @Override
+                    public Deferred<List<Variant>> call(RowResultIterator results) {
+                        if (results != null) {
+                            for (RowResult row: results) {
+                                VariantType t = VariantType.fromByte(row.getByte(5));
+                                String type = (t == null) ? null : t.toString();
+                                CoreVariant cv = new CoreVariant(row.getString(0), row.getInt(1), (row.getInt(4)==0) ? null : " rs" + row.getInt(4),
+                                        row.getString(3), row.getString(2), type, null, null, null, null, null, null, null, null);
+                                res.add(new Variant(cv, row.getString(6)));
+                            }
+                            if (asyncScanner.hasMoreRows()) {
+                                return asyncScanner.nextRows().addBothDeferring(this);
+                            }
+                        }
+                        return Deferred.fromResult(res);
+                    }
+                }
+
+                private Deferred<List<Variant>> processAllRows() {
+                    return asyncScanner.nextRows().addBothDeferring(new AsyncProcessRows());
+                }
+            }
+
+            // async calls
+            for (Integer sid: sampleIds) {
+                final AsyncKuduScanner asyncScanner = getAsyncScannerGT(asyncClient, gtTable, columns, query, sid);
+                sampleScanners.add(asyncScanner); // to close them later
+                final AsyncVariantsBySample allVars = new AsyncVariantsBySample(asyncScanner);
+                deferredVariantsBySamples.put(sid, allVars.processAllRows());
+            }
+
+            // sync deferred
+            for (Integer sid: deferredVariantsBySamples.keySet()) {
+                variantsBySamples.put(sid, deferredVariantsBySamples.get(sid).join());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                for (AsyncKuduScanner s: sampleScanners) s.close();
+                asyncClient.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        return variantsBySamples;
+    }
+
+    private static AsyncKuduScanner getAsyncScannerVariantTable(AsyncKuduClient client, KuduTable varTable, List<String> columns, CoreVariant cv)
+            throws KuduException {
+        Schema schema = varTable.getSchema();
+        AsyncKuduScanner.AsyncKuduScannerBuilder aksb = client.newScannerBuilder(varTable);
+        aksb.setProjectedColumnNames(columns);
+        aksb.addPredicate(newComparisonPredicate(schema.getColumn("contig"), KuduPredicate.ComparisonOp.EQUAL, cv.getC()));
+        aksb.addPredicate(newComparisonPredicate(schema.getColumn("start"), KuduPredicate.ComparisonOp.EQUAL, cv.getS()));
+        aksb.addPredicate(newComparisonPredicate(schema.getColumn("ref"), KuduPredicate.ComparisonOp.EQUAL, cv.getR()));
+        aksb.addPredicate(newComparisonPredicate(schema.getColumn("alt"), KuduPredicate.ComparisonOp.EQUAL, cv.getA()));
+        return aksb.build();
+    }
+
+    private static void updateVariantsWithCohortWideStats(CoreQuery query, List<CoreVariant> coreVariants) {
+        AsyncKuduClient asyncClient = new AsyncKuduClient.AsyncKuduClientBuilder(ReadConfig.getProp().getProperty("kuduMaster")).build();
+        KuduTable variantTable = addCallBackToTable(asyncClient, query.getDatasetId() + "_variants");
+        List<AsyncKuduScanner> variantScanners = new LinkedList<>(); // to close them later
+
+        Map<Integer, Deferred<CoreVariant>> deferredVariantsWithCohortWideStats = new HashMap<>(coreVariants.size());
+        List<String> columns = Arrays.asList("ac", "af", "homc", "hetc"); // projection
+
+        try {
+            final class AsyncVariantsByVariants {
+                final private AsyncKuduScanner asyncScanner;
+
+                private AsyncVariantsByVariants(AsyncKuduScanner asyncScanner) {
+                    this.asyncScanner = asyncScanner;
+                }
+
+                final class AsyncProcessRows implements Callback<Deferred<CoreVariant>, RowResultIterator> {
+                    private CoreVariant res;
+                    @Override
+                    public Deferred<CoreVariant> call(RowResultIterator results) {
+                        if (results != null && results.hasNext()) {
+                            // no way to set a limit in AsyncKuduScanner, hence processing the 1st row and ignoring the rest
+                            RowResult row = results.next();
+                            res = new CoreVariant(null, null, null, null, null, null, row.getFloat(0), row.getFloat(1), row.getInt(2), row.getInt(3), null, null, null, null);
+                        }
+                        return Deferred.fromResult(res);
+                    }
+                }
+
+                private Deferred<CoreVariant> processAllRows() {
+                    return asyncScanner.nextRows().addBothDeferring(new AsyncProcessRows());
+                }
+            }
+
+            // async calls
+            for (int i=0; i < coreVariants.size(); ++i) {
+                CoreVariant cv = coreVariants.get(i);
+                final AsyncKuduScanner asyncScanner = getAsyncScannerVariantTable(asyncClient, variantTable, columns, cv);
+                variantScanners.add(asyncScanner); // to close them later
+                final AsyncVariantsByVariants allVars = new AsyncVariantsByVariants(asyncScanner);
+                deferredVariantsWithCohortWideStats.put(i, allVars.processAllRows());
+            }
+
+            // sync deferred
+            for (Integer cvIndex: deferredVariantsWithCohortWideStats.keySet()) {
+                CoreVariant cvStat = deferredVariantsWithCohortWideStats.get(cvIndex).join();
+                CoreVariant cv = coreVariants.get(cvIndex);
+                cv.setAc(cvStat.getAc());
+                cv.setAf(cvStat.getAf());
+                cv.setHomc(cvStat.getHomc());
+                cv.setHetc(cvStat.getHetc());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                for (AsyncKuduScanner s: variantScanners) s.close();
+                asyncClient.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static List<CoreVariant> variantsInVirtualCohort(CoreQuery query, List<String> samples) {
+        // calls to Kudu
+        List<Integer> sampleIds = getSampleIDsByNames(query.getDatasetId() + "_samples", samples);
+        Map<Integer, List<Variant>> variantsBySamples = asyncVariantsBySample(query, sampleIds);
+
+        // Select unique variants
+        boolean first = true;
+        boolean conj = query.getConj();
+        Map<CoreVariant, Counters> uniqueVariants = new HashMap<>();
+        for (List<Variant> sv : variantsBySamples.values()) {
+            for (Variant v : sv) {
+                Counters c = (uniqueVariants.containsKey(v.cv)) ? uniqueVariants.get(v.cv) : new Counters();
+                c.sc += 1;
+                if (v.gt == null)
+                    throw new RuntimeException("Inconsistency: Null GT");
+                if (v.gt.equals("1/1") || v.gt.equals("1|1"))
+                    c.homc += 1;
+                if (first || !conj || uniqueVariants.containsKey(v.cv))
+                    uniqueVariants.put(v.cv, c);
+            }
+            first = false;
+        }
+
+        // virtual cohort stats
+        int i = 0;
+        boolean unlim = query.getLimit() == null;
+        int lim = (unlim) ? 0 : query.getLimit();
+        List<CoreVariant> coreVariants = new ArrayList<>(uniqueVariants.size());
+        for (Map.Entry<CoreVariant, Counters> entry: uniqueVariants.entrySet()) {
+            if (!unlim && i >= lim) break;
+            CoreVariant cv = entry.getKey();
+            Counters c = entry.getValue();
+            if (conj && (c.sc != samples.size())) continue;
+            cv.setVhomc(c.homc);
+            cv.setVhetc(c.sc - c.homc);
+            cv.setVac(2*c.homc + c.sc - c.homc);
+            cv.setVaf(cv.getVac()/(float)(2*samples.size()));
+            coreVariants.add(cv);
+            ++i;
+        }
+
+        updateVariantsWithCohortWideStats(query, coreVariants);
+        return coreVariants;
+    }
+
+
     private static Map<Integer, String> getAllSamples(String tableName) {
         Map<Integer, String> allSamples = new HashMap<>();
         final KuduClient client = new KuduClient.KuduClientBuilder(ReadConfig.getProp().getProperty("kuduMaster")).build();
@@ -122,144 +339,6 @@ public class AsyncKuduCalls {
             }
         }
         return allSamples;
-    }
-
-    private static AsyncKuduScanner getAsyncScanner(AsyncKuduClient client, KuduTable gtTable, List<String> columns, CoreQuery query, Integer sampleId)
-            throws KuduException {
-        Schema schema = gtTable.getSchema();
-        AsyncKuduScanner.AsyncKuduScannerBuilder aksb = client.newScannerBuilder(gtTable);
-        aksb.setProjectedColumnNames(columns);
-        if (query.getChromosome() != null)
-            aksb.addPredicate(newComparisonPredicate(schema.getColumn("contig"), KuduPredicate.ComparisonOp.EQUAL, query.getChromosome().toString()));
-        if (query.getPositionStart() != null)
-            aksb.addPredicate(newComparisonPredicate(schema.getColumn("start"), KuduPredicate.ComparisonOp.GREATER_EQUAL, query.getPositionStart()));
-        if (query.getPositionEnd() != null)
-            aksb.addPredicate(newComparisonPredicate(schema.getColumn("start"), KuduPredicate.ComparisonOp.LESS_EQUAL, query.getPositionEnd()));
-        if (query.getType() != null)
-            aksb.addPredicate(newComparisonPredicate(schema.getColumn("vtype"), KuduPredicate.ComparisonOp.EQUAL, query.getType().toByte()));
-        if (query.getRefAllele() != null && !query.getRefAllele().isEmpty())
-            aksb.addPredicate(newComparisonPredicate(schema.getColumn("ref"), KuduPredicate.ComparisonOp.EQUAL, query.getRefAllele()));
-        if (query.getAltAllele() != null && !query.getAltAllele().isEmpty())
-            aksb.addPredicate(newComparisonPredicate(schema.getColumn("alt"), KuduPredicate.ComparisonOp.EQUAL, query.getAltAllele()));
-        if (query.getDbSNP() != null && !query.getDbSNP().isEmpty())
-            aksb.addPredicate(newComparisonPredicate(schema.getColumn("rsid"), KuduPredicate.ComparisonOp.EQUAL, query.getDbSNP().get(0)));
-        if (sampleId != null)
-            aksb.addPredicate(newComparisonPredicate(schema.getColumn("sample_id"), KuduPredicate.ComparisonOp.EQUAL, sampleId));
-        return aksb.build();
-    }
-
-
-    private static Map<Integer, List<Variant>> asyncVariantsBySample(CoreQuery query, List<Integer> sampleIds) {
-        AsyncKuduClient asyncClient = new AsyncKuduClient.AsyncKuduClientBuilder(ReadConfig.getProp().getProperty("kuduMaster")).build();
-        KuduTable gtTable = addCallBackToTable(asyncClient, query.getDatasetId() + "_gt");
-        List<AsyncKuduScanner> sampleScanners = new LinkedList<>();
-
-        Map<Integer, List<Variant>> variantsBySamples = new HashMap<>(sampleIds.size());
-        Map<Integer, Deferred<List<Variant>>> deferredVariantsBySamples = new HashMap<>(sampleIds.size());
-        List<String> columns = Arrays.asList("contig", "start", "ref", "alt", "rsid", "vtype", "gt");
-
-        try {
-            final class AsyncVariantsBySample {
-                final private AsyncKuduScanner asyncScanner;
-
-                private AsyncVariantsBySample(AsyncKuduScanner asyncScanner) {
-                    this.asyncScanner = asyncScanner;
-                }
-
-                final class AsyncProcessRows implements Callback<Deferred<List<Variant>>, RowResultIterator> {
-                    private final List<Variant> res = new LinkedList<>();
-                    @Override
-                    public Deferred<List<Variant>> call(RowResultIterator results) {
-                        if (results != null) {
-                            for (RowResult row : results) {
-                                VariantType t = VariantType.fromByte(row.getByte(5));
-                                String type = (t == null) ? null : t.toString();
-                                CoreVariant cv = new CoreVariant(row.getString(0), row.getInt(1), (row.getInt(4)==0) ? null : " rs" + row.getInt(4),
-                                        row.getString(3), row.getString(2), type, null, null, null, null, null, null, null, null);
-                                res.add(new Variant(cv, row.getString(6)));
-                            }
-                            if (asyncScanner.hasMoreRows()) {
-                                return asyncScanner.nextRows().addBothDeferring(this);
-                            }
-                        }
-                        return Deferred.fromResult(res);
-                    }
-                }
-
-                private Deferred<List<Variant>> processAllRows() {
-                    return asyncScanner.nextRows().addBothDeferring(new AsyncProcessRows());
-                }
-            }
-
-            // async calls
-            for (Integer sid: sampleIds) {
-                final AsyncKuduScanner asyncScanner = getAsyncScanner(asyncClient, gtTable, columns, query, sid);
-                sampleScanners.add(asyncScanner); // to close them later
-                final AsyncVariantsBySample allVars = new AsyncVariantsBySample(asyncScanner);
-                deferredVariantsBySamples.put(sid, allVars.processAllRows());
-            }
-
-            // sync deferred
-            for (Integer sid : deferredVariantsBySamples.keySet()) {
-                variantsBySamples.put(sid, deferredVariantsBySamples.get(sid).join());
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        } finally {
-            try {
-                for (AsyncKuduScanner s : sampleScanners) s.close();
-                asyncClient.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        return variantsBySamples;
-    }
-
-    public static List<CoreVariant> variantsInVirtualCohort(CoreQuery query, List<String> samples) {
-        // calls to Kudu
-        List<Integer> sampleIds = getSampleIDsByNames(query.getDatasetId() + "_samples", samples);
-        Map<Integer, List<Variant>> variantsBySamples = asyncVariantsBySample(query, sampleIds);
-
-        // Select unique variants
-        boolean first = true;
-        boolean conj = query.getConj();
-        Map<CoreVariant, Counters> uniqueVariants = new HashMap<>();
-        for (List<Variant> sv : variantsBySamples.values()) {
-            for (Variant v : sv) {
-                Counters c = (uniqueVariants.containsKey(v.cv)) ? uniqueVariants.get(v.cv) : new Counters();
-                c.sc += 1;
-                if (v.gt == null)
-                    throw new RuntimeException("Inconsistency: Null GT");
-                if (v.gt.equals("1/1") || v.gt.equals("1|1"))
-                    c.homc += 1;
-                if (first || !conj || uniqueVariants.containsKey(v.cv))
-                    uniqueVariants.put(v.cv, c);
-            }
-            first = false;
-        }
-
-        // Virtual cohort stats & final results
-        int i = 0;
-        boolean unlim = query.getLimit() == null;
-        int lim = (unlim) ? 0 : query.getLimit();
-        List<CoreVariant> coreVariants = new ArrayList<>(uniqueVariants.size());
-        for (Map.Entry<CoreVariant, Counters> entry : uniqueVariants.entrySet()) {
-            if (!unlim && i >= lim) break;
-            CoreVariant cv = entry.getKey();
-            Counters c = entry.getValue();
-            if (conj && (c.sc != samples.size())) continue;
-            cv.setVhomc(c.homc);
-            cv.setVhetc(c.sc - c.homc);
-            cv.setVac(2*c.homc + c.sc - c.homc);
-            cv.setVaf(cv.getVac()/(float)(2*samples.size()));
-            coreVariants.add(cv);
-            ++i;
-        }
-
-        return coreVariants;
     }
 
     public static List<String> selectSamplesByGT(CoreQuery query) {
@@ -304,15 +383,15 @@ public class AsyncKuduCalls {
             }
 
             // async calls
-            for (Integer sid : sampleIds) {
-                final AsyncKuduScanner asyncScanner = getAsyncScanner(asyncClient, gtTable, columns, query, sid);
+            for (Integer sid: sampleIds) {
+                final AsyncKuduScanner asyncScanner = getAsyncScannerGT(asyncClient, gtTable, columns, query, sid);
                 sampleScanners.add(asyncScanner); // to close them later
                 final AsyncVariantsExistBySample allVars = new AsyncVariantsExistBySample(asyncScanner);
                 deferredBySamples.put(sid, allVars.processAllRows());
             }
 
             // sync deferred
-            for (Integer sid : deferredBySamples.keySet()) {
+            for (Integer sid: deferredBySamples.keySet()) {
                 bySamples.put(sid, deferredBySamples.get(sid).join());
             }
         } catch (Exception e) {
@@ -320,7 +399,7 @@ public class AsyncKuduCalls {
             throw new RuntimeException(e);
         } finally {
             try {
-                for (AsyncKuduScanner s : sampleScanners) s.close();
+                for (AsyncKuduScanner s: sampleScanners) s.close();
                 asyncClient.close();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -328,7 +407,7 @@ public class AsyncKuduCalls {
         }
 
         List<String> selectedSamplesNames = new LinkedList<>();
-        for (Integer sid : bySamples.keySet()) {
+        for (Integer sid: bySamples.keySet()) {
             if (bySamples.get(sid))
                 selectedSamplesNames.add(allSamples.get(sid));
         }
