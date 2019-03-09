@@ -27,7 +27,7 @@ package au.org.garvan.vsal.core.entity;
 
 public enum DatasetID {
 
-    ASPREE("ASPREE"), MGRB("MGRB"), MITO("MITO");
+    ASPREE("ASPREE"), MGRB("MGRB"), MITO("MITO"), NEURO("NEUROMUSCULAR");
 
     private final String dataset;
 
