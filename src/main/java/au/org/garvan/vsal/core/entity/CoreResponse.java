@@ -36,7 +36,7 @@ import java.util.List;
 public class CoreResponse {
 
     private CoreQuery coreQuery;
-    private Long vsalTime;  // ms
+    private Long vsalTimeMs;  // ms
     private int vcSize; // virtual cohort size
     private List<CoreVariant> v;
     private int total;  // total # variants
@@ -49,15 +49,15 @@ public class CoreResponse {
         // needed for JAXB
     }
 
-    public CoreResponse(CoreQuery coreQuery, Long vsalTime, Error error) {
+    public CoreResponse(CoreQuery coreQuery, Long vsalTimeMs, Error error) {
         this.coreQuery = coreQuery;
-        this.vsalTime = vsalTime;
+        this.vsalTimeMs = vsalTimeMs;
         this.error = error;
     }
 
-    public CoreResponse(CoreQuery coreQuery, Long vsalTime, int vcSize, List<CoreVariant> v, int total, List<String> sampleIDs, String pheno, Error error, String status) {
+    public CoreResponse(CoreQuery coreQuery, Long vsalTimeMs, int vcSize, List<CoreVariant> v, int total, List<String> sampleIDs, String pheno, Error error, String status) {
         this.coreQuery = coreQuery;
-        this.vsalTime = vsalTime;
+        this.vsalTimeMs = vsalTimeMs;
         this.vcSize = vcSize;
         this.v = v;
         this.total = total;
@@ -75,12 +75,12 @@ public class CoreResponse {
         this.coreQuery = coreQuery;
     }
 
-    public Long getVsalTime() {
-        return vsalTime;
+    public Long getVsalTimeMs() {
+        return vsalTimeMs;
     }
 
-    public void setVsalTime(Long vsalTime) {
-        this.vsalTime = vsalTime;
+    public void setVsalTimeMs(Long vsalTimeMs) {
+        this.vsalTimeMs = vsalTimeMs;
     }
 
     public int getVcSize() {
