@@ -73,22 +73,40 @@ public class CoreService {
             return new CoreResponse(q, elapsed, errorResource);
         }
 
-        if (q.getPositionStart() != null && q.getPositionStart() < 0 ) {
-            Error errorResource = new Error("Malformed Query", "Start position of a region should be >= 0");
-            Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
-            return new CoreResponse(q, elapsed, errorResource);
+        if (q.getChromosome() != null) {
+            if (q.getPositionStart() == null || q.getPositionEnd() == null ||
+                    q.getChromosome().length != q.getPositionStart().length ||
+                    q.getChromosome().length !=  q.getPositionEnd().length) {
+                Error errorResource = new Error("Malformed Query", "Regions must have equal # chr, start & end");
+                Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
+                return new CoreResponse(q, elapsed, errorResource);
+            }
         }
 
-        if (q.getPositionEnd() != null && q.getPositionEnd() < 0 ) {
-            Error errorResource = new Error("Malformed Query", "End position of a region should be >= 0");
-            Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
-            return new CoreResponse(q, elapsed, errorResource);
-        }
+        if (q.getChromosome() != null) {
+            for (int i=0; i < q.getChromosome().length; ++i) {
+                if (q.getPositionStart()[i] < 0) {
+                    String errDesc = "Start position of region " + (i+1) + " should be >= 0, but it's " + q.getPositionStart()[i];
+                    Error errorResource = new Error("Malformed Query", errDesc);
+                    Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
+                    return new CoreResponse(q, elapsed, errorResource);
+                }
 
-        if (q.getPositionStart() != null && q.getPositionEnd() != null && q.getPositionEnd() < q.getPositionStart()) {
-            Error errorResource = new Error("Malformed Query", "End position of a region should be >= start position");
-            Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
-            return new CoreResponse(q, elapsed, errorResource);
+                if (q.getPositionEnd()[i] < 0) {
+                    String errDesc = "End position of region " + (i+1) + " should be >= 0, but it's " + q.getPositionEnd()[i];
+                    Error errorResource = new Error("Malformed Query", errDesc);
+                    Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
+                    return new CoreResponse(q, elapsed, errorResource);
+                }
+
+                if (q.getPositionEnd()[i] < q.getPositionStart()[i]) {
+                    String errDesc = "End position " + q.getPositionEnd()[i] + "of region " + (i+1) +
+                            " should be >= start position " + q.getPositionStart()[i];
+                    Error errorResource = new Error("Malformed Query", errDesc);
+                    Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
+                    return new CoreResponse(q, elapsed, errorResource);
+                }
+            }
         }
 
         List<String> samples;

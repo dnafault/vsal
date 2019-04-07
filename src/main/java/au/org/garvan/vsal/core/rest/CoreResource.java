@@ -62,9 +62,9 @@ public class CoreResource {
      * find?pheno=true&dataset=MGRB
      * </i></pre>
      *
-     * @param chromosome  chromosome, [1-22, X, Y, MT] or [Chr1-Chr22, ChrX, ChrY, ChrMT]
-     * @param positionStart start of a region in chromosome, inclusive
-     * @param positionEnd end of a region in chromosome, inclusive
+     * @param chromosome  chromosome, [1-22, X, Y, MT] or [Chr1-Chr22, ChrX, ChrY, ChrMT] (as csv for multiple regions)
+     * @param positionStart start of a region in chromosome, inclusive (as csv for multiple regions)
+     * @param positionEnd end of a region in chromosome, inclusive (as csv for multiple regions)
      * @param refAllele reference allele
      * @param altAllele alternate allele
      * @param dataset dataset
@@ -73,7 +73,7 @@ public class CoreResource {
      * @param limit limit for # of variants in response
      * @param skip # of skipped variants
      * @param jwt JWT token
-     * @param samples list of samples ids
+     * @param samples list of samples ids, csv
      * @param conj variant conjunction in samples, boolean
      * @param selectSamplesByGT return samples instead of variants, boolean
      * @param returnAnnotations return annotations in variants, boolean
@@ -82,8 +82,8 @@ public class CoreResource {
      */
     @GET
     public CoreResponse query(@QueryParam("chromosome") String chromosome,
-                              @QueryParam("positionStart") Integer positionStart,
-                              @QueryParam("positionEnd") Integer positionEnd,
+                              @QueryParam("positionStart") String positionStart,
+                              @QueryParam("positionEnd") String positionEnd,
                               @QueryParam("refAllele") String refAllele,
                               @QueryParam("altAllele") String altAllele,
                               @QueryParam("dataset") String dataset,
