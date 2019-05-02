@@ -29,6 +29,7 @@ import au.org.garvan.vsal.core.entity.CoreQuery;
 import au.org.garvan.vsal.core.entity.CoreVariant;
 import au.org.garvan.vsal.core.entity.DatasetID;
 import au.org.garvan.vsal.core.entity.VariantType;
+import au.org.garvan.vsal.core.service.CoreService;
 import au.org.garvan.vsal.core.util.ReadConfig;
 import com.stumbleupon.async.Callback;
 import com.stumbleupon.async.Deferred;
@@ -288,7 +289,8 @@ public class AsyncKuduCalls {
         }
     }
 
-    public static List<CoreVariant> variantsInVirtualCohort(CoreQuery query, List<String> samples) {
+    public static AbstractMap.SimpleImmutableEntry<Long,List<CoreVariant>> variantsInVirtualCohort(CoreQuery query, List<String> samples) {
+        Long start = System.nanoTime();
         // calls to Kudu
         List<Integer> sampleIds = getSampleIDsByNames(query.getDatasetId() + "_samples", samples);
         Map<Integer, List<Variant>> variantsBySamples = asyncVariantsBySample(query, sampleIds);
@@ -330,7 +332,8 @@ public class AsyncKuduCalls {
         }
 
         updateVariantsWithCohortWideStats(query.getDatasetId(), coreVariants);
-        return coreVariants;
+        Long elapsedDbMs = (System.nanoTime() - start) / CoreService.NANO_TO_MILLI;
+        return new AbstractMap.SimpleImmutableEntry(elapsedDbMs, coreVariants);
     }
 
 
@@ -364,11 +367,12 @@ public class AsyncKuduCalls {
         return allSamples;
     }
 
-    public static List<String> selectSamplesByGT(CoreQuery query) {
+    public static AbstractMap.SimpleImmutableEntry<Long,List<String>> selectSamplesByGT(CoreQuery query) {
         // detects variant existence in a region for all sample IDs
         // saved as a boolean flag per sample
         // implementation similar to asyncVariantsBySample(), but doesn't keep variants - only flags
 
+        Long start = System.nanoTime();
         Map<Integer, String> allSamples = getAllSamples(query.getDatasetId() + "_samples");
         AsyncKuduClient asyncClient = new AsyncKuduClient.AsyncKuduClientBuilder(ReadConfig.getProp().getProperty("kuduMaster")).build();
         KuduTable gtTable = addCallBackToTable(asyncClient, query.getDatasetId() + "_gt");
@@ -440,13 +444,15 @@ public class AsyncKuduCalls {
             }
         }
 
+        Long elapsedDbMs = (System.nanoTime() - start) / CoreService.NANO_TO_MILLI;
+
         List<String> selectedSamplesNames = new LinkedList<>();
         for (Integer sid: bySamples.keySet()) {
             if (bySamples.get(sid))
                 selectedSamplesNames.add(allSamples.get(sid));
         }
 
-        return selectedSamplesNames;
+        return new AbstractMap.SimpleImmutableEntry(elapsedDbMs, selectedSamplesNames);
     }
 
     private static KuduTable addCallBackToTable(AsyncKuduClient asyncClient, String tbl) {

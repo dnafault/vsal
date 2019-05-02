@@ -145,12 +145,9 @@ public class CoreService {
                     res = new CoreResponse(q, elapsed, errorResource);
                 } else {
                     CoreJWT.verifyJWT(q.getJwt(), q.getDatasetId().toString().toLowerCase() + "/gt");
-                    AbstractMap.SimpleImmutableEntry<Long,List<String>> sampleIDs = au.org.garvan.vsal.dnaerys.service.DnaerysCalls.selectSamplesByGT(q);
+                    AbstractMap.SimpleImmutableEntry<Long,List<String>> sampleIDs = au.org.garvan.vsal.kudu.service.AsyncKuduCalls.selectSamplesByGT(q);
                     Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
                     res = new CoreResponse(q, elapsed, sampleIDs.getKey(), sampleIDs.getValue().size(), null, 0, sampleIDs.getValue(), null, null, null);
-//                    List<String> sampleIDs = au.org.garvan.vsal.kudu.service.AsyncKuduCalls.selectSamplesByGT(q);
-//                    Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
-//                    res = new CoreResponse(q, elapsed, sampleIDs.size(), null, 0, sampleIDs, null, null, null);
                 }
             } catch (UnsupportedEncodingException | JWTVerificationException e) {
                 Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
@@ -176,12 +173,9 @@ public class CoreService {
                         res = new CoreResponse(q, elapsed, 0l, 0, null, 0, null, null, null, "No samples selected");
                     } else {
                         AbstractMap.SimpleImmutableEntry<Long,List<CoreVariant>> vars =
-                            au.org.garvan.vsal.dnaerys.service.DnaerysCalls.variantsInVirtualCohortWithStats(q, samples);
+                                au.org.garvan.vsal.kudu.service.AsyncKuduCalls.variantsInVirtualCohort(q, samples);
                         Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
                         res = new CoreResponse(q, elapsed, vars.getKey(), samples.size(), vars.getValue(), vars.getValue().size(), null, null, null, null);
-//                        List<CoreVariant> vars = au.org.garvan.vsal.kudu.service.AsyncKuduCalls.variantsInVirtualCohort(q, samples);
-//                        Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
-//                        res = new CoreResponse(q, elapsed, samples.size(), vars, vars.size(), null, null, null, null);
                     }
                 }
             } catch (UnsupportedEncodingException | JWTVerificationException e) {
@@ -196,12 +190,9 @@ public class CoreService {
         } else {
             // select variants in regions
             try {
-                AbstractMap.SimpleImmutableEntry<Long,List<CoreVariant>> vars = au.org.garvan.vsal.dnaerys.service.DnaerysCalls.variantsInRegions(q);
+                AbstractMap.SimpleImmutableEntry<Long,List<CoreVariant>> vars = au.org.garvan.vsal.kudu.service.KuduCalls.variants(q);
                 Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
                 res = new CoreResponse(q, elapsed, vars.getKey(), 0, vars.getValue(), vars.getValue().size(), null, null, null, null);
-//                List<CoreVariant> vars = au.org.garvan.vsal.kudu.service.KuduCalls.variants(q);
-//                Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
-//                res = new CoreResponse(q, elapsed, 0, vars, vars.size(), null, null, null, null);
             } catch (Exception e) {
                 Error errorResource = new Error("VS Runtime Exception", e.getMessage());
                 Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
