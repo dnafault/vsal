@@ -145,7 +145,7 @@ public class CoreService {
                     res = new CoreResponse(q, elapsed, errorResource);
                 } else {
                     CoreJWT.verifyJWT(q.getJwt(), q.getDatasetId().toString().toLowerCase() + "/gt");
-                    AbstractMap.SimpleImmutableEntry<Long,List<String>> sampleIDs = au.org.garvan.vsal.kudu.service.AsyncKuduCalls.selectSamplesByGT(q);
+                    AbstractMap.SimpleImmutableEntry<Long,List<String>> sampleIDs = au.org.garvan.vsal.dnaerys.service.DnaerysCalls.selectSamplesByGT(q);
                     Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
                     res = new CoreResponse(q, elapsed, sampleIDs.getKey(), sampleIDs.getValue().size(), null, 0, sampleIDs.getValue(), null, null, null);
                 }
@@ -173,7 +173,7 @@ public class CoreService {
                         res = new CoreResponse(q, elapsed, 0l, 0, null, 0, null, null, null, "No samples selected");
                     } else {
                         AbstractMap.SimpleImmutableEntry<Long,List<CoreVariant>> vars =
-                                au.org.garvan.vsal.kudu.service.AsyncKuduCalls.variantsInVirtualCohort(q, samples);
+                            au.org.garvan.vsal.dnaerys.service.DnaerysCalls.variantsInVirtualCohortWithStats(q, samples);
                         Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
                         res = new CoreResponse(q, elapsed, vars.getKey(), samples.size(), vars.getValue(), vars.getValue().size(), null, null, null, null);
                     }
@@ -190,7 +190,7 @@ public class CoreService {
         } else {
             // select variants in regions
             try {
-                AbstractMap.SimpleImmutableEntry<Long,List<CoreVariant>> vars = au.org.garvan.vsal.kudu.service.KuduCalls.variants(q);
+                AbstractMap.SimpleImmutableEntry<Long,List<CoreVariant>> vars = au.org.garvan.vsal.dnaerys.service.DnaerysCalls.variantsInRegions(q);
                 Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
                 res = new CoreResponse(q, elapsed, vars.getKey(), 0, vars.getValue(), vars.getValue().size(), null, null, null, null);
             } catch (Exception e) {
