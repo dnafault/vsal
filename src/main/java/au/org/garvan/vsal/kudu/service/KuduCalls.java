@@ -28,6 +28,7 @@ package au.org.garvan.vsal.kudu.service;
 import au.org.garvan.vsal.core.entity.CoreQuery;
 import au.org.garvan.vsal.core.entity.CoreVariant;
 import au.org.garvan.vsal.core.entity.VariantType;
+import au.org.garvan.vsal.core.service.CoreService;
 import au.org.garvan.vsal.core.util.ReadConfig;
 import org.apache.kudu.Schema;
 import org.apache.kudu.client.*;
@@ -63,7 +64,7 @@ public class KuduCalls {
         return ksb.build();
     }
 
-    public static List<CoreVariant> variants(CoreQuery query) {
+    public static AbstractMap.SimpleImmutableEntry<Long,List<CoreVariant>> variants(CoreQuery query) {
         List<CoreVariant> coreVariants = new ArrayList<>();
         KuduClient client = new KuduClient.KuduClientBuilder(ReadConfig.getProp().getProperty("kuduMaster")).build();
         List<String> columns = Arrays.asList("contig", "start", "ref", "alt", "rsid", "vtype", "af", "ac", "homc", "hetc");
@@ -72,6 +73,7 @@ public class KuduCalls {
         int region = 0;
         boolean unlim = query.getLimit() == null;
         int lim = (unlim) ? 0 : query.getLimit();
+        Long start = System.nanoTime();
 
         try {
             while (region < query.getRegions()) {
@@ -105,6 +107,7 @@ public class KuduCalls {
                 e.printStackTrace();
             }
         }
-        return coreVariants;
+        Long elapsedDbMs = (System.nanoTime() - start) / CoreService.NANO_TO_MILLI;
+        return new AbstractMap.SimpleImmutableEntry(elapsedDbMs, coreVariants);
     }
 }
