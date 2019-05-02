@@ -23,39 +23,16 @@
  * SOFTWARE.
  */
 
-package au.org.garvan.vsal.core.util;
+package au.org.garvan.vsal.dnaerys.entity;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
+import au.org.garvan.vsal.core.util.ReadConfig;
+import org.dnaerys.analytics.BMA;
 
-/**
- * Config file utilities.
- *
- * @author Dmitry Degrave (dmeetry@gmail.com)
- * @version 1.0
- */
-public class ReadConfig {
-    private static final String propFileName = "vsal.properties";
-    private static final Properties prop = readConfig();
+public class BMAinterface {
 
-    private static Properties readConfig() {
-        Properties p = new Properties();
-        try (InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(propFileName)) {
-            if (inputStream != null) {
-                p.load(inputStream);
-            } else {
-                System.out.println("Can't read properties from " + propFileName + ". Setting up Kudu Master as localhost:7051");
-                p.setProperty("kuduMaster","localhost:7051");
-            }
-        } catch (IOException e) {
-            System.out.println("Can't read properties from " + propFileName + ". Setting up Kudu Master as localhost:7051");
-            p.setProperty("kuduMaster","localhost:7051");
-        }
-        return p;
-    }
+    private static final BMA bma =  BMA.deserializeAndVerifyBMA(ReadConfig.getProp().getProperty("bmapath"), true);
 
-    public static Properties getProp() {
-        return prop;
+    public static BMA getBMA() {
+        return bma;
     }
 }

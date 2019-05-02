@@ -104,6 +104,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>dnaerys</groupId>
+            <artifactId>dnaerys_2.11</artifactId>
+            <version>0.1.19next</version>
+        </dependency>
+        <dependency>
             <groupId>javax.enterprise</groupId>
             <artifactId>cdi-api</artifactId>
             <scope>provided</scope>
@@ -161,7 +166,7 @@
         <dependency>
             <groupId>org.apache.kudu</groupId>
             <artifactId>kudu-client</artifactId>
-            <version>1.4.0</version>
+            <version>1.9.0</version>
         </dependency>
         <dependency>
             <groupId>com.auth0</groupId>
@@ -226,31 +231,31 @@
         <profile>
             <id>test-managed</id>
             <dependencies>
-                <dependency>
-                    <groupId>org.wildfly</groupId>
-                    <artifactId>wildfly-arquillian-container-managed</artifactId>
-                    <scope>test</scope>
-                </dependency>
-                <dependency>
-                    <groupId>org.jboss.arquillian.protocol</groupId>
-                    <artifactId>arquillian-protocol-servlet</artifactId>
-                    <scope>test</scope>
-                </dependency>
+                <!--<dependency>-->
+                    <!--<groupId>org.wildfly</groupId>-->
+                    <!--<artifactId>wildfly-arquillian-container-managed</artifactId>-->
+                    <!--<scope>test</scope>-->
+                <!--</dependency>-->
+                <!--<dependency>-->
+                    <!--<groupId>org.jboss.arquillian.protocol</groupId>-->
+                    <!--<artifactId>arquillian-protocol-servlet</artifactId>-->
+                    <!--<scope>test</scope>-->
+                <!--</dependency>-->
             </dependencies>
         </profile>
         <profile>
             <id>test-remote</id>
             <dependencies>
-                <dependency>
-                    <groupId>org.wildfly</groupId>
-                    <artifactId>wildfly-arquillian-container-remote</artifactId>
-                    <scope>test</scope>
-                </dependency>
-                <dependency>
-                    <groupId>org.jboss.arquillian.protocol</groupId>
-                    <artifactId>arquillian-protocol-servlet</artifactId>
-                    <scope>test</scope>
-                </dependency>
+                <!--<dependency>-->
+                    <!--<groupId>org.wildfly</groupId>-->
+                    <!--<artifactId>wildfly-arquillian-container-remote</artifactId>-->
+                    <!--<scope>test</scope>-->
+                <!--</dependency>-->
+                <!--<dependency>-->
+                    <!--<groupId>org.jboss.arquillian.protocol</groupId>-->
+                    <!--<artifactId>arquillian-protocol-servlet</artifactId>-->
+                    <!--<scope>test</scope>-->
+                <!--</dependency>-->
             </dependencies>
         </profile>
     </profiles>

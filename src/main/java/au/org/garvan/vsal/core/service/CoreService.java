@@ -39,6 +39,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.AbstractMap;
 import java.util.List;
 import java.util.Properties;
 
@@ -51,7 +52,7 @@ import java.util.Properties;
 @RequestScoped
 public class CoreService {
 
-    private static final int NANO_TO_MILLI = 1000000;
+    public static final int NANO_TO_MILLI = 1000000;
 
     @PostConstruct
     public void init() {
@@ -73,22 +74,40 @@ public class CoreService {
             return new CoreResponse(q, elapsed, errorResource);
         }
 
-        if (q.getPositionStart() != null && q.getPositionStart() < 0 ) {
-            Error errorResource = new Error("Malformed Query", "Start position of a region should be >= 0");
-            Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
-            return new CoreResponse(q, elapsed, errorResource);
+        if (q.getChromosome() != null) {
+            if (q.getPositionStart() == null || q.getPositionEnd() == null ||
+                    q.getChromosome().length != q.getPositionStart().length ||
+                    q.getChromosome().length !=  q.getPositionEnd().length) {
+                Error errorResource = new Error("Malformed Query", "Regions must have equal # chr, start & end");
+                Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
+                return new CoreResponse(q, elapsed, errorResource);
+            }
         }
 
-        if (q.getPositionEnd() != null && q.getPositionEnd() < 0 ) {
-            Error errorResource = new Error("Malformed Query", "End position of a region should be >= 0");
-            Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
-            return new CoreResponse(q, elapsed, errorResource);
-        }
+        if (q.getChromosome() != null) {
+            for (int i=0; i < q.getRegions(); ++i) {
+                if (q.getPositionStart()[i] < 0) {
+                    String errDesc = "Start position of region " + (i+1) + " should be >= 0, but it's " + q.getPositionStart()[i];
+                    Error errorResource = new Error("Malformed Query", errDesc);
+                    Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
+                    return new CoreResponse(q, elapsed, errorResource);
+                }
 
-        if (q.getPositionStart() != null && q.getPositionEnd() != null && q.getPositionEnd() < q.getPositionStart()) {
-            Error errorResource = new Error("Malformed Query", "End position of a region should be >= start position");
-            Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
-            return new CoreResponse(q, elapsed, errorResource);
+                if (q.getPositionEnd()[i] < 0) {
+                    String errDesc = "End position of region " + (i+1) + " should be >= 0, but it's " + q.getPositionEnd()[i];
+                    Error errorResource = new Error("Malformed Query", errDesc);
+                    Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
+                    return new CoreResponse(q, elapsed, errorResource);
+                }
+
+                if (q.getPositionEnd()[i] < q.getPositionStart()[i]) {
+                    String errDesc = "End position " + q.getPositionEnd()[i] + "of region " + (i+1) +
+                            " should be >= start position " + q.getPositionStart()[i];
+                    Error errorResource = new Error("Malformed Query", errDesc);
+                    Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
+                    return new CoreResponse(q, elapsed, errorResource);
+                }
+            }
         }
 
         List<String> samples;
@@ -106,7 +125,7 @@ public class CoreService {
                     String path = p.getProperty("phenoPath") + "/" + q.getDatasetId().toString().toLowerCase() + ".pheno.json";
                     String pheno = new String(Files.readAllBytes(Paths.get(path)), StandardCharsets.UTF_8);
                     Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
-                    res = new CoreResponse(q, elapsed, 0, null, 0, null, pheno, null, null);
+                    res = new CoreResponse(q, elapsed, 0l, 0, null, 0, null, pheno, null, null);
                 }
             } catch (UnsupportedEncodingException | JWTVerificationException e) {
                 Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
@@ -118,6 +137,7 @@ public class CoreService {
                 res = new CoreResponse(q, elapsed, errorResource);
             }
         } else if (q.getSelectSamplesByGT()) {
+            // select samples
             try {
                 if (q.getJwt() == null) {
                     Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
@@ -125,9 +145,9 @@ public class CoreService {
                     res = new CoreResponse(q, elapsed, errorResource);
                 } else {
                     CoreJWT.verifyJWT(q.getJwt(), q.getDatasetId().toString().toLowerCase() + "/gt");
-                    List<String> sampleIDs = au.org.garvan.vsal.kudu.service.AsyncKuduCalls.selectSamplesByGT(q);
+                    AbstractMap.SimpleImmutableEntry<Long,List<String>> sampleIDs = au.org.garvan.vsal.dnaerys.service.DnaerysCalls.selectSamplesByGT(q);
                     Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
-                    res = new CoreResponse(q, elapsed, sampleIDs.size(), null, 0, sampleIDs, null, null, null);
+                    res = new CoreResponse(q, elapsed, sampleIDs.getKey(), sampleIDs.getValue().size(), null, 0, sampleIDs.getValue(), null, null, null);
                 }
             } catch (UnsupportedEncodingException | JWTVerificationException e) {
                 Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
@@ -139,6 +159,7 @@ public class CoreService {
                 res = new CoreResponse(q, elapsed, errorResource);
             }
         } else if (q.getSamples() != null) {
+            // select variants in virtual cohort
             try {
                 if (q.getJwt() == null) {
                     Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
@@ -149,11 +170,12 @@ public class CoreService {
                     samples = q.getSamples();
                     if (samples.isEmpty()) {
                         Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
-                        res = new CoreResponse(q, elapsed, 0, null, 0, null, null, null, "No samples selected");
+                        res = new CoreResponse(q, elapsed, 0l, 0, null, 0, null, null, null, "No samples selected");
                     } else {
-                        List<CoreVariant> vars = au.org.garvan.vsal.kudu.service.AsyncKuduCalls.variantsInVirtualCohort(q, samples);
+                        AbstractMap.SimpleImmutableEntry<Long,List<CoreVariant>> vars =
+                            au.org.garvan.vsal.dnaerys.service.DnaerysCalls.variantsInVirtualCohortWithStats(q, samples);
                         Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
-                        res = new CoreResponse(q, elapsed, samples.size(), vars, vars.size(), null, null, null, null);
+                        res = new CoreResponse(q, elapsed, vars.getKey(), samples.size(), vars.getValue(), vars.getValue().size(), null, null, null, null);
                     }
                 }
             } catch (UnsupportedEncodingException | JWTVerificationException e) {
@@ -166,10 +188,11 @@ public class CoreService {
                 res = new CoreResponse(q, elapsed, errorResource);
             }
         } else {
+            // select variants in regions
             try {
-                List<CoreVariant> vars = au.org.garvan.vsal.kudu.service.KuduCalls.variants(q);
+                AbstractMap.SimpleImmutableEntry<Long,List<CoreVariant>> vars = au.org.garvan.vsal.dnaerys.service.DnaerysCalls.variantsInRegions(q);
                 Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
-                res = new CoreResponse(q, elapsed, 0, vars, vars.size(), null, null, null, null);
+                res = new CoreResponse(q, elapsed, vars.getKey(), 0, vars.getValue(), vars.getValue().size(), null, null, null, null);
             } catch (Exception e) {
                 Error errorResource = new Error("VS Runtime Exception", e.getMessage());
                 Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;

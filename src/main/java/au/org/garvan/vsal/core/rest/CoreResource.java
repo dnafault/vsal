@@ -62,9 +62,9 @@ public class CoreResource {
      * find?pheno=true&dataset=MGRB
      * </i></pre>
      *
-     * @param chromosome  chromosome, [1-22, X, Y, MT] or [Chr1-Chr22, ChrX, ChrY, ChrMT]
-     * @param positionStart start of a region in chromosome, inclusive
-     * @param positionEnd end of a region in chromosome, inclusive
+     * @param chromosome  chromosome, [1-22, X, Y, MT] or [Chr1-Chr22, ChrX, ChrY, ChrMT] (as csv for multiple regions)
+     * @param positionStart start of a region in chromosome, inclusive (as csv for multiple regions)
+     * @param positionEnd end of a region in chromosome, inclusive (as csv for multiple regions)
      * @param refAllele reference allele
      * @param altAllele alternate allele
      * @param dataset dataset
@@ -73,17 +73,19 @@ public class CoreResource {
      * @param limit limit for # of variants in response
      * @param skip # of skipped variants
      * @param jwt JWT token
-     * @param samples list of samples ids
+     * @param samples list of samples ids, csv
      * @param conj variant conjunction in samples, boolean
      * @param selectSamplesByGT return samples instead of variants, boolean
      * @param returnAnnotations return annotations in variants, boolean
      * @param pheno return phenotypes, boolean
+     * @param hwe return p-value for Chi-squared test for deviation from Hardy-Weinberg Equilibrium, boolean
+     * @param chi2 return Pearson's chi-squared test p-value and odds ratio, boolean
      * @return {@link CoreResponse}
      */
     @GET
     public CoreResponse query(@QueryParam("chromosome") String chromosome,
-                              @QueryParam("positionStart") Integer positionStart,
-                              @QueryParam("positionEnd") Integer positionEnd,
+                              @QueryParam("positionStart") String positionStart,
+                              @QueryParam("positionEnd") String positionEnd,
                               @QueryParam("refAllele") String refAllele,
                               @QueryParam("altAllele") String altAllele,
                               @QueryParam("dataset") String dataset,
@@ -96,10 +98,13 @@ public class CoreResource {
                               @QueryParam("conj") Boolean conj,
                               @QueryParam("selectSamplesByGT") Boolean selectSamplesByGT,
                               @QueryParam("returnAnnotations") Boolean returnAnnotations,
-                              @QueryParam("pheno") Boolean pheno) {
+                              @QueryParam("pheno") Boolean pheno,
+                              @QueryParam("hwe") Boolean hwe,
+                              @QueryParam("chi2") Boolean chi2) {
 
         CoreQuery coreQuery = CoreQueryUtils.getCoreQuery(chromosome, positionStart, positionEnd, refAllele, altAllele,
-                "hg19", dataset, dbSNP, type, limit, skip, jwt, samples, conj, selectSamplesByGT, returnAnnotations, pheno);
+                "hg19", dataset, dbSNP, type, limit, skip, jwt, samples, conj, selectSamplesByGT, returnAnnotations,
+                pheno, hwe, chi2);
 
         return service.query(coreQuery);
     }
