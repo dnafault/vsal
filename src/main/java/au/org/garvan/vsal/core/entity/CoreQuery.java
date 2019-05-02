@@ -35,8 +35,8 @@ import java.util.List;
 public class CoreQuery {
 
     private Chromosome[] chromosome;
-    private Integer[] positionStart;
-    private Integer[] positionEnd;
+    private int[] positionStart;
+    private int[] positionEnd;
     private String refAllele;
     private String altAllele;
     private DatasetID datasetId;
@@ -52,12 +52,14 @@ public class CoreQuery {
     private Boolean selectSamplesByGT = false;
     private Boolean returnAnnotations = false;
     private Boolean pheno = false;
+    private Boolean hwe = false;
+    private Boolean chi2 = false;
 
     public CoreQuery() {
         // needed for JAXB
     }
 
-    public CoreQuery(Chromosome[] chromosome, Integer[] positionStart, Integer[] positionEnd, String refAllele, String altAllele, DatasetID datasetId, VariantType type, Reference reference) {
+    public CoreQuery(Chromosome[] chromosome, int[] positionStart, int[] positionEnd, String refAllele, String altAllele, DatasetID datasetId, VariantType type, Reference reference) {
         this.chromosome = chromosome;
         this.positionStart = positionStart;
         this.positionEnd = positionEnd;
@@ -68,7 +70,7 @@ public class CoreQuery {
         this.reference = reference;
     }
 
-    public CoreQuery(Chromosome[] chromosome, Integer[] positionStart, Integer[] positionEnd, String refAllele, String altAllele, DatasetID datasetId, List<String> dbSNP, VariantType type, Reference reference, Integer regions, Integer limit, Integer skip, String jwt, List<String> samples, Boolean conj, Boolean selectSamplesByGT, Boolean returnAnnotations, Boolean pheno) {
+    public CoreQuery(Chromosome[] chromosome, int[] positionStart, int[] positionEnd, String refAllele, String altAllele, DatasetID datasetId, List<String> dbSNP, VariantType type, Reference reference, Integer regions, Integer limit, Integer skip, String jwt, List<String> samples, Boolean conj, Boolean selectSamplesByGT, Boolean returnAnnotations, Boolean pheno, Boolean hwe, Boolean chi2) {
         this.chromosome = chromosome;
         this.positionStart = positionStart;
         this.positionEnd = positionEnd;
@@ -87,6 +89,8 @@ public class CoreQuery {
         this.selectSamplesByGT = selectSamplesByGT;
         this.returnAnnotations = returnAnnotations;
         this.pheno = pheno;
+        this.hwe = hwe;
+        this.chi2 = chi2;
     }
 
     public Chromosome[] getChromosome() {
@@ -97,19 +101,19 @@ public class CoreQuery {
         this.chromosome = chromosome;
     }
 
-    public Integer[] getPositionStart() {
+    public int[] getPositionStart() {
         return positionStart;
     }
 
-    public void setPositionStart(Integer[] positionStart) {
+    public void setPositionStart(int[] positionStart) {
         this.positionStart = positionStart;
     }
 
-    public Integer[] getPositionEnd() {
+    public int[] getPositionEnd() {
         return positionEnd;
     }
 
-    public void setPositionEnd(Integer[] positionEnd) {
+    public void setPositionEnd(int[] positionEnd) {
         this.positionEnd = positionEnd;
     }
 
@@ -231,5 +235,21 @@ public class CoreQuery {
 
     public void setPheno(Boolean pheno) {
         this.pheno = pheno;
+    }
+
+    public Boolean getHwe() {
+        return hwe;
+    }
+
+    public void setHwe(Boolean hwe) {
+        this.hwe = hwe;
+    }
+
+    public Boolean getChi2() {
+        return chi2;
+    }
+
+    public void setChi2(Boolean chi2) {
+        this.chi2 = chi2;
     }
 }

@@ -147,8 +147,10 @@ public class AsyncKuduCalls {
                                 for (RowResult row : results) {
                                     VariantType t = VariantType.fromByte(row.getByte(5));
                                     String type = (t == null) ? null : t.toString();
-                                    CoreVariant cv = new CoreVariant(row.getString(0), row.getInt(1), (row.getInt(4) == 0) ? null : " rs" + row.getInt(4),
-                                            row.getString(3), row.getString(2), type, null, null, null, null, null, null, null, null);
+                                    CoreVariant cv = new CoreVariant(row.getString(0), row.getInt(1),
+                                            (row.getInt(4) == 0) ? null : " rs" + row.getInt(4),
+                                            row.getString(3), row.getString(2), type,
+                                            null, null, null, null, null, null, null, null, null, null, null);
                                     res.add(new Variant(cv, row.getString(6)));
                                 }
                                 if (asyncScanner.hasMoreRows()) {
@@ -242,7 +244,9 @@ public class AsyncKuduCalls {
                         if (results != null && results.hasNext()) {
                             // no way to set a limit in AsyncKuduScanner, hence processing the 1st row and ignoring the rest
                             RowResult row = results.next();
-                            res = new CoreVariant(null, null, null, null, null, null, row.getFloat(0), row.getFloat(1), row.getInt(2), row.getInt(3), null, null, null, null);
+                            res = new CoreVariant(null, null, null, null, null, null,
+                                    row.getFloat(0), row.getFloat(1), row.getInt(2), row.getInt(3),
+                                    null, null, null, null, null, null, null);
                         }
                         return Deferred.fromResult(res);
                     }
@@ -307,7 +311,7 @@ public class AsyncKuduCalls {
             first = false;
         }
 
-        // virtual cohort stats
+        // autosomal virtual cohort stats
         int i = 0;
         boolean unlim = query.getLimit() == null;
         int lim = (unlim) ? 0 : query.getLimit();
@@ -319,7 +323,7 @@ public class AsyncKuduCalls {
             if (conj && (c.sc != samples.size())) continue;
             cv.setVhomc(c.homc);
             cv.setVhetc(c.sc - c.homc);
-            cv.setVac(2*c.homc + c.sc - c.homc);
+            cv.setVac(2f*c.homc + c.sc - c.homc);
             cv.setVaf(cv.getVac()/(float)(2*samples.size()));
             coreVariants.add(cv);
             ++i;

@@ -83,9 +83,11 @@ public class KuduCalls {
                         RowResult result = results.next();
                         VariantType t = VariantType.fromByte(result.getByte(5));
                         String type = (t == null) ? null : t.toString();
-                        CoreVariant cv = new CoreVariant(result.getString(0), result.getInt(1), (result.getInt(4)==0) ? null : " rs" + result.getInt(4),
-                                result.getString(3), result.getString(2), type, result.getFloat(7), result.getFloat(6), result.getInt(8), result.getInt(9),
-                                null, null, null, null);
+                        CoreVariant cv = new CoreVariant(result.getString(0), result.getInt(1),
+                                (result.getInt(4)==0) ? null : " rs" + result.getInt(4),
+                                result.getString(3), result.getString(2), type, result.getFloat(7),
+                                result.getFloat(6), result.getInt(8), result.getInt(9),
+                                null, null, null, null, null, null, null);
                         coreVariants.add(cv);
                         ++row;
                     }

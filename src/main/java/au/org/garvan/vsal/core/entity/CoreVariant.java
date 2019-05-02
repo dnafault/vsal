@@ -45,16 +45,21 @@ public class CoreVariant {
     private Integer   hetc; // alt allele het count
 
     // virtual cohort-wide alt allele stats
-    private Integer     vac; // alt allele count
-    private Float       vaf; // alt allele freq
-    private Integer   vhomc; // alt allele hom count
-    private Integer   vhetc; // alt allele het count
+    private Float      vac; // alt allele count
+    private Float      vaf; // alt allele freq
+    private Integer  vhomc; // alt allele hom count
+    private Integer  vhetc; // alt allele het count
+
+    // stats tests outcomes
+    private Float      hwe; // p-value for Chi-squared test for deviation from Hardy-Weinberg Equilibrium
+    private Float     chi2; // Pearson's chi-squared test p-value
+    private Float       or; // Pearson's chi-squared test odds ratio
 
     public CoreVariant() {
         // needed for JAXB
     }
 
-    public CoreVariant(String c, Integer s, String rs, String a, String r, String t, Float ac, Float af, Integer homc, Integer hetc, Integer vac, Float vaf, Integer vhomc, Integer vhetc) {
+    public CoreVariant(String c, Integer s, String rs, String a, String r, String t, Float ac, Float af, Integer homc, Integer hetc, Float vac, Float vaf, Integer vhomc, Integer vhetc, Float hwe, Float chi2, Float or) {
         this.c = c;
         this.s = s;
         this.rs = rs;
@@ -69,6 +74,9 @@ public class CoreVariant {
         this.vaf = vaf;
         this.vhomc = vhomc;
         this.vhetc = vhetc;
+        this.hwe = hwe;
+        this.chi2 = chi2;
+        this.or = or;
     }
 
     // Chapter 30 "Object Equality", "Programming in Scala" 3rd ed
@@ -177,11 +185,11 @@ public class CoreVariant {
         this.hetc = hetc;
     }
 
-    public Integer getVac() {
+    public Float getVac() {
         return vac;
     }
 
-    public void setVac(Integer vac) {
+    public void setVac(Float vac) {
         this.vac = vac;
     }
 
@@ -207,5 +215,29 @@ public class CoreVariant {
 
     public void setVhetc(Integer vhetc) {
         this.vhetc = vhetc;
+    }
+
+    public Float getHwe() {
+        return hwe;
+    }
+
+    public void setHwe(Float hwe) {
+        this.hwe = hwe;
+    }
+
+    public Float getChi2() {
+        return chi2;
+    }
+
+    public void setChi2(Float chi2) {
+        this.chi2 = chi2;
+    }
+
+    public Float getOr() {
+        return or;
+    }
+
+    public void setOr(Float or) {
+        this.or = or;
     }
 }

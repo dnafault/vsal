@@ -75,6 +75,8 @@ public class CoreResource {
      * @param selectSamplesByGT return samples instead of variants, boolean
      * @param returnAnnotations return annotations in variants, boolean
      * @param pheno return phenotypes, boolean
+     * @param hwe return p-value for Chi-squared test for deviation from Hardy-Weinberg Equilibrium, boolean
+     * @param chi2 return Pearson's chi-squared test p-value and odds ratio, boolean
      * @return {@link CoreResponse}
      */
     @GET
@@ -93,10 +95,13 @@ public class CoreResource {
                               @QueryParam("conj") Boolean conj,
                               @QueryParam("selectSamplesByGT") Boolean selectSamplesByGT,
                               @QueryParam("returnAnnotations") Boolean returnAnnotations,
-                              @QueryParam("pheno") Boolean pheno) {
+                              @QueryParam("pheno") Boolean pheno,
+                              @QueryParam("hwe") Boolean hwe,
+                              @QueryParam("chi2") Boolean chi2) {
 
         CoreQuery coreQuery = CoreQueryUtils.getCoreQuery(chromosome, positionStart, positionEnd, refAllele, altAllele,
-                "hg19", dataset, dbSNP, type, limit, skip, jwt, samples, conj, selectSamplesByGT, returnAnnotations, pheno);
+                "hg19", dataset, dbSNP, type, limit, skip, jwt, samples, conj, selectSamplesByGT, returnAnnotations,
+                pheno, hwe, chi2);
 
         return service.query(coreQuery);
     }
@@ -128,6 +133,8 @@ public class CoreResource {
      * @param selectSamplesByGT return samples instead of variants, boolean
      * @param returnAnnotations return annotations in variants, boolean
      * @param pheno return phenotypes, boolean
+     * @param hwe return p-value for Chi-squared test for deviation from Hardy-Weinberg Equilibrium, boolean
+     * @param chi2 return Pearson's chi-squared test p-value and odds ratio, boolean
      * @return {@link CoreResponse}
      */
     @POST
@@ -146,10 +153,11 @@ public class CoreResource {
                                   @QueryParam("conj") Boolean conj,
                                   @QueryParam("selectSamplesByGT") Boolean selectSamplesByGT,
                                   @QueryParam("returnAnnotations") Boolean returnAnnotations,
-                                  @QueryParam("pheno") Boolean pheno) {
-
+                                  @QueryParam("pheno") Boolean pheno,
+                                  @QueryParam("hwe") Boolean hwe,
+                                  @QueryParam("chi2") Boolean chi2) {
         CoreQuery coreQuery = CoreQueryUtils.getCoreQuery(chromosome, positionStart, positionEnd, refAllele, altAllele,
-                "hg19", dataset, dbSNP, type, limit, skip, jwt, samples, conj, selectSamplesByGT, returnAnnotations, pheno);
+                "hg19", dataset, dbSNP, type, limit, skip, jwt, samples, conj, selectSamplesByGT, returnAnnotations, pheno, hwe, chi2);
 
         return service.query(coreQuery);
     }

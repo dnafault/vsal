@@ -31,7 +31,6 @@ import au.org.garvan.vsal.core.entity.CoreQuery;
 import au.org.garvan.vsal.core.entity.DatasetID;
 import au.org.garvan.vsal.core.entity.VariantType;
 
-import java.lang.reflect.Array;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.HashMap;
@@ -141,12 +140,13 @@ public class CoreQueryUtils {
      */
     public static CoreQuery getCoreQuery(String chromosome, String position_start, String position_end, String ref_allele,
                                          String alt_allele, String ref, String dataset, List<String> dbSNP,
-                                         String type, Integer limit, Integer skip, String jwt,
-                                         String samplesAsCSV,
+                                         String type, Integer limit, Integer skip, String jwt, String samplesAsCSV,
                                          Boolean samplesConj,
                                          Boolean selectSamplesByGT,
                                          Boolean returnAnnotations,
-                                         Boolean returnPheno) {
+                                         Boolean returnPheno,
+                                         Boolean returnHWE,
+                                         Boolean returnChi2) {
         Reference r = normalizeReference(ref);
         String refAllele= normalizeAllele(ref_allele);
         String altAllele= normalizeAllele(alt_allele);
@@ -157,26 +157,26 @@ public class CoreQueryUtils {
         Boolean selectSamples = (selectSamplesByGT == null) ? false : selectSamplesByGT;
         Boolean retAnnot = (returnAnnotations == null) ? false : returnAnnotations;
         Boolean pheno = (returnPheno == null) ? false : returnPheno;
+        Boolean hwe = (returnHWE == null) ? false : returnHWE;
+        Boolean chi2 = (returnChi2 == null) ? false : returnChi2;
         List<String> samples = (samplesAsCSV != null) ? Arrays.asList(samplesAsCSV.split("\\s*,\\s*")) : null;
         Chromosome[] chr = csvStrToChr(chromosome);
         Integer regions = (chr == null) ? 0 : chr.length;
 
         return new CoreQuery(chr, csvStrToInt(position_start), csvStrToInt(position_end), refAllele, altAllele, datasetId,
-                dbSNP, variantType, r, regions, lim, skip, jwt, samples, conj, selectSamples, retAnnot, pheno);
+                dbSNP, variantType, r, regions, lim, skip, jwt, samples, conj, selectSamples, retAnnot, pheno, hwe, chi2);
     }
 
     /*
      * Converts csv string to Array of Ints.
      * If any value is not valid, the whole returned array is null, invalidating parameter.
      */
-    private static Integer[] csvStrToInt(String csv) {
+    private static int[] csvStrToInt(String csv) {
         if (csv == null) return null;
-        String[]   a = csv.split("\\s*,\\s*");
-        Integer[] ia = new Integer[a.length];
+        String[] a = csv.split("\\s*,\\s*");
+        int[] ia = new int[a.length];
         try {
-            for (int i = 0; i < a.length; ++i) {
-                ia[i] = Integer.valueOf(a[i]);
-            }
+            for (int i = 0; i < a.length; ++i) ia[i] = Integer.valueOf(a[i]);
         } catch (NumberFormatException e) {
             return null;
         }
