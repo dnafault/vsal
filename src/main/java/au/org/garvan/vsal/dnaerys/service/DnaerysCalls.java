@@ -33,7 +33,7 @@ import au.org.garvan.vsal.core.entity.VariantType;
 import au.org.garvan.vsal.core.service.CoreService;
 import au.org.garvan.vsal.dnaerys.entity.BMAinterface;
 
-import org.dnaerys.AlleleBms;
+import org.dnaerys.Allele_;
 import org.dnaerys.AlleleWithStats;
 import org.dnaerys.analytics.BMA;
 import org.dnaerys.variantstore.VariantsStats;
@@ -50,7 +50,7 @@ public class DnaerysCalls {
         String[] chr = new String[query.getChromosome().length];
         for (int i=0; i < chr.length; ++i) { chr[i] = query.getChromosome()[i].toString(); }
         Long start = System.nanoTime();
-        Map<String,LinkedList<AlleleBms>> variants =
+        Map<String,LinkedList<Allele_>> variants =
             VariantsInRegions.selectUniqueVariantsInRegions(bma, chr, query.getPositionStart(), query.getPositionEnd(),
                                                             query.getRefAllele(), query.getAltAllele());
         Long elapsedDbMs = (System.nanoTime() - start) / CoreService.NANO_TO_MILLI;
@@ -62,7 +62,7 @@ public class DnaerysCalls {
         String[] chr = new String[query.getChromosome().length];
         for (int i=0; i < chr.length; ++i) { chr[i] = query.getChromosome()[i].toString(); }
         Long start = System.nanoTime();
-        Map<String,LinkedList<AlleleBms>> variants =
+        Map<String,LinkedList<Allele_>> variants =
             VariantsInRegions.selectUniqueVariantsInRegionsInVirtualCohort(bma, chr, query.getPositionStart(),
                                            query.getPositionEnd(), query.getRefAllele(), query.getAltAllele(), samples);
         Long elapsedDbMs = (System.nanoTime() - start) / CoreService.NANO_TO_MILLI;
@@ -93,12 +93,12 @@ public class DnaerysCalls {
         return new AbstractMap.SimpleImmutableEntry(elapsedDbMs, SamplesInRegions.samplesToNames(bma, samples));
     }
 
-    private static List<CoreVariant> toCoreVariants(Map<String,LinkedList<AlleleBms>> variants) {
+    private static List<CoreVariant> toCoreVariants(Map<String,LinkedList<Allele_>> variants) {
         List<CoreVariant> coreVariants = new LinkedList<>();
-        for (Map.Entry<String,LinkedList<AlleleBms>> entry : variants.entrySet()) {
-            Iterator<AlleleBms> it = entry.getValue().iterator();
+        for (Map.Entry<String,LinkedList<Allele_>> entry : variants.entrySet()) {
+            Iterator<Allele_> it = entry.getValue().iterator();
             while (it.hasNext()) {
-                AlleleBms a = it.next();
+                Allele_ a = it.next();
                 VariantType t = VariantType.fromByte(a.vtype());
                 String type = (t == null) ? null : t.toString();
                 CoreVariant cv = new CoreVariant(entry.getKey(), a.start(), "", a.alt(), a.ref(), type, a.ac(), a.af(),
@@ -115,7 +115,7 @@ public class DnaerysCalls {
             Iterator<AlleleWithStats> it = entry.getValue().iterator();
             while (it.hasNext()) {
                 AlleleWithStats alwt = it.next();
-                AlleleBms a = alwt.allele();
+                Allele_ a = alwt.allele();
                 VariantType t = VariantType.fromByte(a.vtype());
                 String type = (t == null) ? null : t.toString();
                 CoreVariant cv = new CoreVariant(entry.getKey(), a.start(), "", a.alt(), a.ref(), type, a.ac(), a.af(),
