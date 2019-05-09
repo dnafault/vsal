@@ -422,7 +422,8 @@ public class AsyncKuduCalls {
 
                 // sync deferred
                 for (Integer sid: deferredBySamples.keySet()) {
-                    bySamples.put(sid, deferredBySamples.get(sid).join());
+                    Boolean exist = deferredBySamples.get(sid).join();
+                    if (exist) bySamples.put(sid, true);
                 }
 
                 try {

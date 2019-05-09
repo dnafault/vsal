@@ -43,7 +43,7 @@ public class CoreQuery {
     private List<String> dbSNP;
     private VariantType type;
     private Reference reference;
-    private Integer regions;
+    private Integer regions; // # of regions, i.e. == length of chromosome / positionStart / positionEnd
     private Integer limit;
     private Integer skip;
     private String jwt;

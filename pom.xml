@@ -104,11 +104,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>dnaerys</groupId>
-            <artifactId>dnaerys_2.11</artifactId>
-            <version>0.1.19next</version>
-        </dependency>
-        <dependency>
             <groupId>javax.enterprise</groupId>
             <artifactId>cdi-api</artifactId>
             <scope>provided</scope>
