@@ -331,7 +331,21 @@ public class AsyncKuduCalls {
             ++i;
         }
 
-        updateVariantsWithCohortWideStats(query.getDatasetId(), coreVariants);
+        // update variants with cohort wide stats
+        List<CoreVariant> varsWithStat = KuduCalls.variants(query).getValue();
+        Collections.sort(varsWithStat);
+
+        for (CoreVariant cv: coreVariants) {
+            int ind = Collections.binarySearch(varsWithStat, cv);
+            if (ind < 0)
+                throw new RuntimeException("No row in Variant table for: " + cv.getC() + " " + cv.getS().toString() + " " + cv.getR() + " " + cv.getA());
+            CoreVariant cvStat = varsWithStat.get(ind);
+            cv.setAc(cvStat.getAc());
+            cv.setAf(cvStat.getAf());
+            cv.setHomc(cvStat.getHomc());
+            cv.setHetc(cvStat.getHetc());
+        }
+
         Long elapsedDbMs = (System.nanoTime() - start) / CoreService.NANO_TO_MILLI;
         return new AbstractMap.SimpleImmutableEntry(elapsedDbMs, coreVariants);
     }
