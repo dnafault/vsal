@@ -39,12 +39,12 @@ import static org.apache.kudu.client.KuduPredicate.newComparisonPredicate;
 
 public class KuduCalls {
 
-    private static KuduScanner getScanner(KuduClient client, String tableName, List<String> columns, CoreQuery query, Integer region, Integer sampleId)
+    private static KuduScanner getScanner(KuduClient client, String tableName, List<String> projectedColumns, CoreQuery query, Integer region, Integer sampleId)
             throws KuduException {
         KuduTable table = client.openTable(tableName);
         Schema schema = table.getSchema();
         KuduScanner.KuduScannerBuilder ksb = client.newScannerBuilder(table);
-        ksb.setProjectedColumnNames(columns);
+        ksb.setProjectedColumnNames(projectedColumns);
         if (query.getChromosome() != null)
             ksb.addPredicate(newComparisonPredicate(schema.getColumn("contig"), KuduPredicate.ComparisonOp.EQUAL, query.getChromosome()[region].toString()));
         if (query.getPositionStart() != null)
@@ -61,6 +61,23 @@ public class KuduCalls {
             ksb.addPredicate(newComparisonPredicate(schema.getColumn("rsid"), KuduPredicate.ComparisonOp.EQUAL, query.getDbSNP().get(0)));
         if (sampleId != null)
             ksb.addPredicate(newComparisonPredicate(schema.getColumn("sample_id"), KuduPredicate.ComparisonOp.EQUAL, sampleId));
+        return ksb.build();
+    }
+
+    private static KuduScanner getScannerForVariant(KuduClient client, String tableName, List<String> projectedColumns,
+                                                    String chr, Integer start, String ref, String alt) throws KuduException {
+        KuduTable table = client.openTable(tableName);
+        Schema schema = table.getSchema();
+        KuduScanner.KuduScannerBuilder ksb = client.newScannerBuilder(table);
+        ksb.setProjectedColumnNames(projectedColumns);
+        if (chr != null)
+            ksb.addPredicate(newComparisonPredicate(schema.getColumn("contig"), KuduPredicate.ComparisonOp.EQUAL, chr));
+        if (start != null)
+            ksb.addPredicate(newComparisonPredicate(schema.getColumn("start"), KuduPredicate.ComparisonOp.EQUAL, start));
+        if (ref != null && !ref.isEmpty())
+            ksb.addPredicate(newComparisonPredicate(schema.getColumn("ref"), KuduPredicate.ComparisonOp.EQUAL, ref));
+        if (alt != null && !alt.isEmpty())
+            ksb.addPredicate(newComparisonPredicate(schema.getColumn("alt"), KuduPredicate.ComparisonOp.EQUAL, alt));
         return ksb.build();
     }
 
