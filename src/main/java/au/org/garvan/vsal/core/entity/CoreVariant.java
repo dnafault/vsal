@@ -28,7 +28,7 @@ package au.org.garvan.vsal.core.entity;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "CoreVariant")
-public class CoreVariant {
+public class CoreVariant implements Comparable<CoreVariant> {
 
     private String  c; // chromosome
     private Integer s; // start
@@ -103,6 +103,27 @@ public class CoreVariant {
         result = 31 * result + a.hashCode();
         result = 31 * result + r.hashCode();
         return result;
+    }
+
+    @Override
+    public int compareTo(CoreVariant other) {
+        // chromosome, case sensitive
+        int cmp = this.c.compareTo(other.c);
+        if (cmp < 0) return -1;
+        else if (cmp > 0) return 1;
+        // start
+        cmp = this.s.compareTo(other.s);
+        if (cmp < 0) return -1;
+        else if (cmp > 0) return 1;
+        // ref, case sensitive
+        cmp = this.r.compareTo(other.r);
+        if (cmp < 0) return -1;
+        else if (cmp > 0) return 1;
+        // alt, case sensitive
+        cmp = this.a.compareTo(other.a);
+        if (cmp < 0) return -1;
+        else if (cmp > 0) return 1;
+        return 0;
     }
 
     public String getC() {
