@@ -32,6 +32,8 @@ import au.org.garvan.vsal.core.util.CoreQueryUtils;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import java.util.List;
 
@@ -69,7 +71,6 @@ public class CoreResource {
      * @param type type, [SNV, MNV, INDEL, SV, CNV]
      * @param limit limit for # of variants in response
      * @param skip # of skipped variants
-     * @param jwt JWT token
      * @param samples list of samples ids, csv
      * @param conj variant conjunction in samples, boolean
      * @param selectSamplesByGT return samples instead of variants, boolean
@@ -90,18 +91,20 @@ public class CoreResource {
                               @QueryParam("type") String type,
                               @QueryParam("limit") Integer limit,
                               @QueryParam("skip") Integer skip,
-                              @QueryParam("jwt") String jwt,
                               @QueryParam("samples") String samples,
                               @QueryParam("conj") Boolean conj,
                               @QueryParam("selectSamplesByGT") Boolean selectSamplesByGT,
                               @QueryParam("returnAnnotations") Boolean returnAnnotations,
                               @QueryParam("pheno") Boolean pheno,
                               @QueryParam("hwe") Boolean hwe,
-                              @QueryParam("chi2") Boolean chi2) {
+                              @QueryParam("chi2") Boolean chi2,
+                              @Context HttpHeaders headers) {
 
+        List<String> authzScheme = headers.getRequestHeader("Authorization");
+        String authz = (authzScheme != null && !authzScheme.isEmpty()) ? authzScheme.get(0) : null;
         CoreQuery coreQuery = CoreQueryUtils.getCoreQuery(chromosome, positionStart, positionEnd, refAllele, altAllele,
-                "hg19", dataset, dbSNP, type, limit, skip, jwt, samples, conj, selectSamplesByGT, returnAnnotations,
-                pheno, hwe, chi2);
+                "hg19", dataset, dbSNP, type, limit, skip, samples, conj, selectSamplesByGT, returnAnnotations,
+                pheno, hwe, chi2, authz);
 
         return service.query(coreQuery);
     }
@@ -137,28 +140,28 @@ public class CoreResource {
      * @param chi2 return Pearson's chi-squared test p-value and odds ratio, boolean
      * @return {@link CoreResponse}
      */
-    @POST
-    public CoreResponse queryPost(@QueryParam("chromosome") String chromosome,
-                                  @QueryParam("positionStart") String positionStart,
-                                  @QueryParam("positionEnd") String positionEnd,
-                                  @QueryParam("refAllele") String refAllele,
-                                  @QueryParam("altAllele") String altAllele,
-                                  @QueryParam("dataset") String dataset,
-                                  @QueryParam("dbSNP") List<String> dbSNP,
-                                  @QueryParam("type") String type,
-                                  @QueryParam("limit") Integer limit,
-                                  @QueryParam("skip") Integer skip,
-                                  @QueryParam("jwt") String jwt,
-                                  @QueryParam("samples") String samples,
-                                  @QueryParam("conj") Boolean conj,
-                                  @QueryParam("selectSamplesByGT") Boolean selectSamplesByGT,
-                                  @QueryParam("returnAnnotations") Boolean returnAnnotations,
-                                  @QueryParam("pheno") Boolean pheno,
-                                  @QueryParam("hwe") Boolean hwe,
-                                  @QueryParam("chi2") Boolean chi2) {
-        CoreQuery coreQuery = CoreQueryUtils.getCoreQuery(chromosome, positionStart, positionEnd, refAllele, altAllele,
-                "hg19", dataset, dbSNP, type, limit, skip, jwt, samples, conj, selectSamplesByGT, returnAnnotations, pheno, hwe, chi2);
-
-        return service.query(coreQuery);
-    }
+//    @POST
+//    public CoreResponse queryPost(@QueryParam("chromosome") String chromosome,
+//                                  @QueryParam("positionStart") String positionStart,
+//                                  @QueryParam("positionEnd") String positionEnd,
+//                                  @QueryParam("refAllele") String refAllele,
+//                                  @QueryParam("altAllele") String altAllele,
+//                                  @QueryParam("dataset") String dataset,
+//                                  @QueryParam("dbSNP") List<String> dbSNP,
+//                                  @QueryParam("type") String type,
+//                                  @QueryParam("limit") Integer limit,
+//                                  @QueryParam("skip") Integer skip,
+//                                  @QueryParam("jwt") String jwt,
+//                                  @QueryParam("samples") String samples,
+//                                  @QueryParam("conj") Boolean conj,
+//                                  @QueryParam("selectSamplesByGT") Boolean selectSamplesByGT,
+//                                  @QueryParam("returnAnnotations") Boolean returnAnnotations,
+//                                  @QueryParam("pheno") Boolean pheno,
+//                                  @QueryParam("hwe") Boolean hwe,
+//                                  @QueryParam("chi2") Boolean chi2) {
+//        CoreQuery coreQuery = CoreQueryUtils.getCoreQuery(chromosome, positionStart, positionEnd, refAllele, altAllele,
+//                "hg19", dataset, dbSNP, type, limit, skip, jwt, samples, conj, selectSamplesByGT, returnAnnotations, pheno, hwe, chi2);
+//
+//        return service.query(coreQuery);
+//    }
 }
