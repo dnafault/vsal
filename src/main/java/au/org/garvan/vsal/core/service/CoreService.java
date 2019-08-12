@@ -120,7 +120,8 @@ public class CoreService {
                     Error errorResource = new Error("JWT verification failed", "JWT is required for phenotypes");
                     res = new CoreResponse(q, elapsed, errorResource);
                 } else {
-                    CoreJWT.verifyJWT(q.getJwt(), q.getDatasetId().toString().toLowerCase() + "/pheno");
+                    if (!q.getDatasetId().toString().equalsIgnoreCase("demo"))
+                        CoreJWT.verifyJWT(q.getJwt(), q.getDatasetId().toString().toLowerCase() + "/pheno");
                     Properties p = ReadConfig.getProp();
                     String path = p.getProperty("phenoPath") + "/" + q.getDatasetId().toString().toLowerCase() + ".pheno.json";
                     String pheno = new String(Files.readAllBytes(Paths.get(path)), StandardCharsets.UTF_8);
@@ -144,7 +145,8 @@ public class CoreService {
                     Error errorResource = new Error("JWT verification failed", "JWT is required for samples selection");
                     res = new CoreResponse(q, elapsed, errorResource);
                 } else {
-                    CoreJWT.verifyJWT(q.getJwt(), q.getDatasetId().toString().toLowerCase() + "/gt");
+                    if (!q.getDatasetId().toString().equalsIgnoreCase("demo"))
+                        CoreJWT.verifyJWT(q.getJwt(), q.getDatasetId().toString().toLowerCase() + "/gt");
                     AbstractMap.SimpleImmutableEntry<Long,List<String>> sampleIDs = au.org.garvan.vsal.kudu.service.AsyncKuduCalls.selectSamplesByGT(q);
                     Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
                     res = new CoreResponse(q, elapsed, sampleIDs.getKey(), sampleIDs.getValue().size(), null, 0, sampleIDs.getValue(), null, null, null);
@@ -166,7 +168,8 @@ public class CoreService {
                     Error errorResource = new Error("JWT verification failed", "JWT is required for samples filtering");
                     res = new CoreResponse(q, elapsed, errorResource);
                 } else {
-                    CoreJWT.verifyJWT(q.getJwt(), q.getDatasetId().toString().toLowerCase() + "/gt");
+                    if (!q.getDatasetId().toString().equalsIgnoreCase("demo"))
+                        CoreJWT.verifyJWT(q.getJwt(), q.getDatasetId().toString().toLowerCase() + "/gt");
                     samples = q.getSamples();
                     if (samples.isEmpty()) {
                         Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
