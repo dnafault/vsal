@@ -42,6 +42,8 @@ import static org.apache.kudu.client.KuduPredicate.newComparisonPredicate;
 
 public class AsyncKuduCalls {
 
+    private static final long SCAN_REQUEST_TIMEOUT = 180000; // ms, == 3 min
+
     private static class Counters {
         int sc = 0;   // alt allele sample count
         int homc = 0; // alt allele hom count
@@ -117,6 +119,10 @@ public class AsyncKuduCalls {
             aksb.addPredicate(newComparisonPredicate(schema.getColumn("rsid"), KuduPredicate.ComparisonOp.EQUAL, query.getDbSNP().get(0)));
         if (sampleId != null)
             aksb.addPredicate(newComparisonPredicate(schema.getColumn("sample_id"), KuduPredicate.ComparisonOp.EQUAL, sampleId));
+        Integer lim = query.getLimit();
+        if (lim != null && lim >= 0)
+            aksb.limit(query.getLimit());
+        aksb.scanRequestTimeout(SCAN_REQUEST_TIMEOUT);
         return aksb.build();
     }
 
@@ -296,33 +302,30 @@ public class AsyncKuduCalls {
         Map<Integer, List<Variant>> variantsBySamples = asyncVariantsBySample(query, sampleIds);
 
         // Select unique variants
-        boolean first = true;
-        boolean conj = query.getConj();
-        Map<CoreVariant, Counters> uniqueVariants = new HashMap<>();
-        for (List<Variant> sv : variantsBySamples.values()) {
-            for (Variant v : sv) {
+        boolean intersection = query.getConj();
+        Map<CoreVariant, Counters> uniqueVariants = new HashMap<>(); // all unique variants in samples
+
+        for (List<Variant> sv : variantsBySamples.values()) { // all samples
+            for (Variant v : sv) { // all variants in a sample
+                if (v.gt == null) throw new RuntimeException("Inconsistency: Null GT in variant in sample");
                 Counters c = (uniqueVariants.containsKey(v.cv)) ? uniqueVariants.get(v.cv) : new Counters();
                 c.sc += 1;
-                if (v.gt == null)
-                    throw new RuntimeException("Inconsistency: Null GT");
-                if (v.gt.equals("1/1") || v.gt.equals("1|1"))
-                    c.homc += 1;
-                if (first || !conj || uniqueVariants.containsKey(v.cv))
-                    uniqueVariants.put(v.cv, c);
+                if (v.gt.equals("1/1") || v.gt.equals("1|1")) c.homc += 1;
+                uniqueVariants.put(v.cv, c);
             }
-            first = false;
         }
 
         // autosomal virtual cohort stats
-        int i = 0;
-        boolean unlim = query.getLimit() == null;
+        int i = 0; // final results variant counter
+        boolean unlim = query.getLimit() == null; // null equals unlim
         int lim = (unlim) ? 0 : query.getLimit();
-        List<CoreVariant> coreVariants = new ArrayList<>(uniqueVariants.size());
+        List<CoreVariant> coreVariants = new ArrayList<>(uniqueVariants.size()); // final list of variants
+
         for (Map.Entry<CoreVariant, Counters> entry: uniqueVariants.entrySet()) {
             if (!unlim && i >= lim) break;
             CoreVariant cv = entry.getKey();
             Counters c = entry.getValue();
-            if (conj && (c.sc != samples.size())) continue;
+            if (intersection && (c.sc != samples.size())) continue; // for intersection - include only those present in all samples
             cv.setVhomc(c.homc);
             cv.setVhetc(c.sc - c.homc);
             cv.setVac(2f*c.homc + c.sc - c.homc);
@@ -332,14 +335,15 @@ public class AsyncKuduCalls {
         }
 
         // update variants with cohort wide stats
-        List<CoreVariant> varsWithStat = KuduCalls.variants(query).getValue();
-        Collections.sort(varsWithStat);
+        query.setLimit(null); // set as unlim - required to get ALL variants from *_variants table
+        List<CoreVariant> varsWithCohortWideStat = KuduCalls.variants(query).getValue();
+        Collections.sort(varsWithCohortWideStat);
 
         for (CoreVariant cv: coreVariants) {
-            int ind = Collections.binarySearch(varsWithStat, cv);
+            int ind = Collections.binarySearch(varsWithCohortWideStat, cv);
             if (ind < 0)
                 throw new RuntimeException("No row in Variant table for: " + cv.getC() + " " + cv.getS().toString() + " " + cv.getR() + " " + cv.getA());
-            CoreVariant cvStat = varsWithStat.get(ind);
+            CoreVariant cvStat = varsWithCohortWideStat.get(ind);
             cv.setAc(cvStat.getAc());
             cv.setAf(cvStat.getAf());
             cv.setHomc(cvStat.getHomc());

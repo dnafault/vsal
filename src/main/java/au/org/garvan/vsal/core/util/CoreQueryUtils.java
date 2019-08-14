@@ -46,7 +46,7 @@ import java.util.Map;
 public class CoreQueryUtils {
 
     private static final Map<Reference, String> chromMapping = new HashMap<>();
-    private static final int MAX_VARIANTS = 100000;
+    private static final int MAX_VARIANTS = 10000;
 
     static {
         chromMapping.put(Reference.HG38, "GRCh38");
