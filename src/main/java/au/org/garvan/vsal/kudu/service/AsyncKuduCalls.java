@@ -121,11 +121,25 @@ public class AsyncKuduCalls {
             aksb.addPredicate(newComparisonPredicate(schema.getColumn("sample_id"), KuduPredicate.ComparisonOp.EQUAL, sampleId));
         Integer lim = query.getLimit();
         if (lim != null && lim >= 0)
-            aksb.limit(query.getLimit());
+            aksb.limit(lim);
         aksb.scanRequestTimeout(SCAN_REQUEST_TIMEOUT);
         return aksb.build();
     }
 
+
+    private static AsyncKuduScanner getAsyncScannerVariantTable(AsyncKuduClient client, KuduTable varTable, List<String> columns, CoreVariant cv, int lim)
+            throws KuduException {
+        Schema schema = varTable.getSchema();
+        AsyncKuduScanner.AsyncKuduScannerBuilder aksb = client.newScannerBuilder(varTable);
+        aksb.setProjectedColumnNames(columns);
+        aksb.addPredicate(newComparisonPredicate(schema.getColumn("contig"), KuduPredicate.ComparisonOp.EQUAL, cv.getC()));
+        aksb.addPredicate(newComparisonPredicate(schema.getColumn("start"), KuduPredicate.ComparisonOp.EQUAL, cv.getS()));
+        aksb.addPredicate(newComparisonPredicate(schema.getColumn("ref"), KuduPredicate.ComparisonOp.EQUAL, cv.getR()));
+        aksb.addPredicate(newComparisonPredicate(schema.getColumn("alt"), KuduPredicate.ComparisonOp.EQUAL, cv.getA()));
+        if (lim >= 0)
+            aksb.limit(lim);
+        return aksb.build();
+    }
 
     private static Map<Integer, List<Variant>> asyncVariantsBySample(CoreQuery query, List<Integer> sampleIds) {
         AsyncKuduClient asyncClient = new AsyncKuduClient.AsyncKuduClientBuilder(ReadConfig.getProp().getProperty("kuduMaster")).build();
@@ -216,24 +230,11 @@ public class AsyncKuduCalls {
         return variantsBySamples;
     }
 
-    private static AsyncKuduScanner getAsyncScannerVariantTable(AsyncKuduClient client, KuduTable varTable, List<String> columns, CoreVariant cv)
-            throws KuduException {
-        Schema schema = varTable.getSchema();
-        AsyncKuduScanner.AsyncKuduScannerBuilder aksb = client.newScannerBuilder(varTable);
-        aksb.setProjectedColumnNames(columns);
-        aksb.addPredicate(newComparisonPredicate(schema.getColumn("contig"), KuduPredicate.ComparisonOp.EQUAL, cv.getC()));
-        aksb.addPredicate(newComparisonPredicate(schema.getColumn("start"), KuduPredicate.ComparisonOp.EQUAL, cv.getS()));
-        aksb.addPredicate(newComparisonPredicate(schema.getColumn("ref"), KuduPredicate.ComparisonOp.EQUAL, cv.getR()));
-        aksb.addPredicate(newComparisonPredicate(schema.getColumn("alt"), KuduPredicate.ComparisonOp.EQUAL, cv.getA()));
-        return aksb.build();
-    }
-
     private static void updateVariantsWithCohortWideStats(DatasetID datasetID, List<CoreVariant> coreVariants) {
         AsyncKuduClient asyncClient = new AsyncKuduClient.AsyncKuduClientBuilder(ReadConfig.getProp().getProperty("kuduMaster")).build();
         KuduTable variantTable = addCallBackToTable(asyncClient, datasetID + "_variants");
         List<AsyncKuduScanner> variantScanners = new LinkedList<>(); // to close them later
-
-        Map<Integer, Deferred<CoreVariant>> deferredVariantsWithCohortWideStats = new HashMap<>(coreVariants.size());
+        List<Deferred<CoreVariant>> deferredVariantsWithCohortWideStats = new ArrayList<>(coreVariants.size());
         List<String> columns = Arrays.asList("ac", "af", "homc", "hetc"); // projection
 
         try {
@@ -249,10 +250,12 @@ public class AsyncKuduCalls {
                     @Override
                     public Deferred<CoreVariant> call(RowResultIterator results) {
                         if (results != null && results.hasNext()) {
-                            // no way to set a limit in AsyncKuduScanner, hence processing the 1st row and ignoring the rest
                             RowResult row = results.next();
                             res = new CoreVariant(null, null, null, null, null, null,
                                     row.getFloat(0), row.getFloat(1), row.getInt(2), row.getInt(3),
+                                    null, null, null, null, null, null, null);
+                        } else {
+                            res = new CoreVariant(null, null, null, null, null, null, null, null, null, null,
                                     null, null, null, null, null, null, null);
                         }
                         return Deferred.fromResult(res);
@@ -267,16 +270,16 @@ public class AsyncKuduCalls {
             // async calls
             for (int i=0; i < coreVariants.size(); ++i) {
                 CoreVariant cv = coreVariants.get(i);
-                final AsyncKuduScanner asyncScanner = getAsyncScannerVariantTable(asyncClient, variantTable, columns, cv);
+                final AsyncKuduScanner asyncScanner = getAsyncScannerVariantTable(asyncClient, variantTable, columns, cv, 1);
                 variantScanners.add(asyncScanner); // to close them later
-                final AsyncVariantsByVariants allVars = new AsyncVariantsByVariants(asyncScanner);
-                deferredVariantsWithCohortWideStats.put(i, allVars.processAllRows());
+                final AsyncVariantsByVariants coreVarWithStats = new AsyncVariantsByVariants(asyncScanner);
+                deferredVariantsWithCohortWideStats.add(coreVarWithStats.processAllRows());
             }
 
             // sync deferred
-            for (Integer cvIndex: deferredVariantsWithCohortWideStats.keySet()) {
-                CoreVariant cvStat = deferredVariantsWithCohortWideStats.get(cvIndex).join();
-                CoreVariant cv = coreVariants.get(cvIndex);
+            for (int i=0; i < coreVariants.size(); ++i) {
+                CoreVariant cvStat = deferredVariantsWithCohortWideStats.get(i).join();
+                CoreVariant cv = coreVariants.get(i);
                 cv.setAc(cvStat.getAc());
                 cv.setAf(cvStat.getAf());
                 cv.setHomc(cvStat.getHomc());
@@ -334,21 +337,7 @@ public class AsyncKuduCalls {
             ++i;
         }
 
-        // update variants with cohort wide stats
-        query.setLimit(null); // set as unlim - required to get ALL variants from *_variants table
-        List<CoreVariant> varsWithCohortWideStat = KuduCalls.variants(query).getValue();
-        Collections.sort(varsWithCohortWideStat);
-
-        for (CoreVariant cv: coreVariants) {
-            int ind = Collections.binarySearch(varsWithCohortWideStat, cv);
-            if (ind < 0)
-                throw new RuntimeException("No row in Variant table for: " + cv.getC() + " " + cv.getS().toString() + " " + cv.getR() + " " + cv.getA());
-            CoreVariant cvStat = varsWithCohortWideStat.get(ind);
-            cv.setAc(cvStat.getAc());
-            cv.setAf(cvStat.getAf());
-            cv.setHomc(cvStat.getHomc());
-            cv.setHetc(cvStat.getHetc());
-        }
+        updateVariantsWithCohortWideStats(query.getDatasetId(), coreVariants);
 
         Long elapsedDbMs = (System.nanoTime() - start) / CoreService.NANO_TO_MILLI;
         return new AbstractMap.SimpleImmutableEntry(elapsedDbMs, coreVariants);
