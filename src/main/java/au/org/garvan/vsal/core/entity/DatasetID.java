@@ -28,7 +28,7 @@ package au.org.garvan.vsal.core.entity;
 public enum DatasetID {
 
     ASPREE("ASPREE"), MGRB("MGRB"), MITO("MITO"), NEURO("NEUROMUSCULAR"), AC("ACUTECARE"), BM("BM"), EE("EE"),
-    ICCON("ICCON"), LD("LEUKODYSTROPHIES"), DEMO("DEMO");
+    ICCON("ICCON"), LD("LEUKODYSTROPHIES"), DEMO("DEMO"), CIRCA("CIRCA");
 
     private final String dataset;
 
