@@ -47,6 +47,7 @@ public class POSTParamsJaxBean {
     @XmlElement public Boolean selectSamplesByGT;
     @XmlElement public Boolean returnAnnotations;
     @XmlElement public Boolean pheno;
+    @XmlElement public Boolean genelist;
     @XmlElement public Boolean hwe;
     @XmlElement public Boolean chi2;
 }

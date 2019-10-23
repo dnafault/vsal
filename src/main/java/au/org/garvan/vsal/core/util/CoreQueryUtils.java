@@ -145,6 +145,7 @@ public class CoreQueryUtils {
                                          Boolean selectSamplesByGT,
                                          Boolean returnAnnotations,
                                          Boolean returnPheno,
+                                         Boolean returnGenelist,
                                          Boolean returnHWE,
                                          Boolean returnChi2,
                                          String authz) {
@@ -158,6 +159,7 @@ public class CoreQueryUtils {
         Boolean selectSamples = (selectSamplesByGT == null) ? false : selectSamplesByGT;
         Boolean retAnnot = (returnAnnotations == null) ? false : returnAnnotations;
         Boolean pheno = (returnPheno == null) ? false : returnPheno;
+        Boolean genelist = (returnGenelist == null) ? false : returnGenelist;
         Boolean hwe = (returnHWE == null) ? false : returnHWE;
         Boolean chi2 = (returnChi2 == null) ? false : returnChi2;
         List<String> samples = (samplesAsCSV != null) ? Arrays.asList(samplesAsCSV.split("\\s*,\\s*")) : null;
@@ -165,8 +167,8 @@ public class CoreQueryUtils {
         Integer regions = (chr == null) ? 0 : chr.length;
         String jwtFinal = (authz != null && authz.startsWith("Bearer")) ? authz.substring("Bearer".length()).trim() : jwt;
 
-        return new CoreQuery(chr, csvStrToInt(position_start), csvStrToInt(position_end), refAllele, altAllele, datasetId,
-                dbSNP, variantType, r, regions, lim, skip, jwtFinal, samples, conj, selectSamples, retAnnot, pheno, hwe, chi2);
+        return new CoreQuery(chr, csvStrToInt(position_start), csvStrToInt(position_end), refAllele, altAllele, datasetId, dbSNP,
+                variantType, r, regions, lim, skip, jwtFinal, samples, conj, selectSamples, retAnnot, pheno, genelist, hwe, chi2);
     }
 
     /*
