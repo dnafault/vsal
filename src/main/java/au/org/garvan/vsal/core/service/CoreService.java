@@ -141,14 +141,16 @@ public class CoreService {
             try {
                 if (q.getJwt() == null) {
                     Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
-                    Error errorResource = new Error("JWT verification failed", "JWT is required for genelist");
+                    Error errorResource = new Error("JWT verification failed", "JWT is required for gene list");
                     res = new CoreResponse(q, elapsed, errorResource);
                 } else {
-                    if (!q.getDatasetId().toString().equalsIgnoreCase("demo"))
+                    String genelist = null; // no gene list for demo
+                    if (!q.getDatasetId().toString().equalsIgnoreCase("demo")) {
                         CoreJWT.verifyJWT(q.getJwt(), q.getDatasetId().toString().toLowerCase() + "/pheno"); // same rights as for pheno data
-                    Properties p = ReadConfig.getProp();
-                    String path = p.getProperty("phenoPath") + "/genelist.json";
-                    String genelist = new String(Files.readAllBytes(Paths.get(path)), StandardCharsets.UTF_8);
+                        Properties p = ReadConfig.getProp();
+                        String path = p.getProperty("phenoPath") + "/genelist.json";
+                        genelist = new String(Files.readAllBytes(Paths.get(path)), StandardCharsets.UTF_8);
+                    }
                     Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
                     res = new CoreResponse(q, elapsed, 0l, 0, null, 0, null, null, genelist, null, null);
                 }
