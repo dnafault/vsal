@@ -506,6 +506,9 @@ public class AsyncKuduCalls {
                             if (results != null && results.hasNext()) {
                                 res = true; // there is at least one variant in a region in a given sample
                             }
+                            if (!res && asyncScanner.hasMoreRows()) { // required!
+                                return asyncScanner.nextRows().addBothDeferring(this);
+                            }
                             return Deferred.fromResult(res);
                         }
                     }
@@ -560,24 +563,6 @@ public class AsyncKuduCalls {
         }
 
         return new AbstractMap.SimpleImmutableEntry(elapsedDbMs, selectedSamplesNames);
-    }
-
-    public static AbstractMap.SimpleImmutableEntry<Long,List<String>> selectSamplesByGT2(CoreQuery query) {
-
-        List<Integer> allSampleIds = new ArrayList<>();
-        List<String>  selectedSamplesNames = new LinkedList<>(); // results
-
-        Map<Integer, String> allSamples = getAllSamples(query.getDatasetId() + "_samples");
-        allSampleIds.addAll(allSamples.keySet());
-
-        Map<Integer, List<Variant>> res = asyncVariantsBySample(query, allSampleIds);
-
-        for (Integer sid : allSampleIds) {
-            if (res.get(sid) != null && res.get(sid).size() > 0)
-                selectedSamplesNames.add(allSamples.get(sid));
-        }
-
-        return new AbstractMap.SimpleImmutableEntry(0l, selectedSamplesNames);
     }
 
     private static KuduTable addCallBackToTable(AsyncKuduClient asyncClient, String tbl) {
