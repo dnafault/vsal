@@ -484,9 +484,9 @@ public class AsyncKuduCalls {
         KuduTable gtTable = addCallBackToTable(asyncClient, query.getDatasetId() + "_gt");
 
         int region = 0;
-        Set<Integer> sampleIds = allSamples.keySet();
+        Set<Integer> allSampleIds = allSamples.keySet();
         List<String> columns = Arrays.asList("sample_id");
-        Map<Integer, Boolean> bySamples = new HashMap<>(sampleIds.size()); // results
+        Map<Integer, Boolean> bySamples = new HashMap<>(allSampleIds.size()); // results
 
         try {
             while (region < query.getRegions()) {
@@ -516,10 +516,10 @@ public class AsyncKuduCalls {
                 }
 
                 List<AsyncKuduScanner> sampleScanners = new LinkedList<>(); // to close them later
-                Map<Integer, Deferred<Boolean>> deferredBySamples = new HashMap<>(sampleIds.size());
+                Map<Integer, Deferred<Boolean>> deferredBySamples = new HashMap<>(allSampleIds.size());
 
                 // async calls
-                for (Integer sid: sampleIds) {
+                for (Integer sid: allSampleIds) {
                     final AsyncKuduScanner asyncScanner = getAsyncScannerGT(asyncClient, gtTable, columns, query, region, sid);
                     sampleScanners.add(asyncScanner); // to close them later
                     final AsyncVariantsExistBySample allVars = new AsyncVariantsExistBySample(asyncScanner);
@@ -554,12 +554,30 @@ public class AsyncKuduCalls {
         Long elapsedDbMs = (System.nanoTime() - start) / CoreService.NANO_TO_MILLI;
 
         List<String> selectedSamplesNames = new LinkedList<>();
-        for (Integer sid: bySamples.keySet()) {
-            if (bySamples.get(sid))
+        for (Integer sid : allSampleIds) {
+            if (bySamples.get(sid) != null && bySamples.get(sid))
                 selectedSamplesNames.add(allSamples.get(sid));
         }
 
         return new AbstractMap.SimpleImmutableEntry(elapsedDbMs, selectedSamplesNames);
+    }
+
+    public static AbstractMap.SimpleImmutableEntry<Long,List<String>> selectSamplesByGT2(CoreQuery query) {
+
+        List<Integer> allSampleIds = new ArrayList<>();
+        List<String>  selectedSamplesNames = new LinkedList<>(); // results
+
+        Map<Integer, String> allSamples = getAllSamples(query.getDatasetId() + "_samples");
+        allSampleIds.addAll(allSamples.keySet());
+
+        Map<Integer, List<Variant>> res = asyncVariantsBySample(query, allSampleIds);
+
+        for (Integer sid : allSampleIds) {
+            if (res.get(sid) != null && res.get(sid).size() > 0)
+                selectedSamplesNames.add(allSamples.get(sid));
+        }
+
+        return new AbstractMap.SimpleImmutableEntry(0l, selectedSamplesNames);
     }
 
     private static KuduTable addCallBackToTable(AsyncKuduClient asyncClient, String tbl) {

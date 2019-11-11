@@ -163,8 +163,6 @@ public class CoreService {
                 Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
                 res = new CoreResponse(q, elapsed, errorResource);
             }
-
-
         } else if (q.getSelectSamplesByGT()) {
             // select samples
             try {
@@ -175,7 +173,8 @@ public class CoreService {
                 } else {
                     if (!q.getDatasetId().toString().equalsIgnoreCase("demo"))
                         CoreJWT.verifyJWT(q.getJwt(), q.getDatasetId().toString().toLowerCase() + "/gt");
-                    AbstractMap.SimpleImmutableEntry<Long,List<String>> sampleIDs = au.org.garvan.vsal.kudu.service.AsyncKuduCalls.selectSamplesByGT(q);
+                    AbstractMap.SimpleImmutableEntry<Long,List<String>> sampleIDs = au.org.garvan.vsal.kudu.service.AsyncKuduCalls.selectSamplesByGT2(q);
+
                     Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
                     res = new CoreResponse(q, elapsed, sampleIDs.getKey(), sampleIDs.getValue().size(), null, 0, sampleIDs.getValue(), null, null, null, null);
                 }
