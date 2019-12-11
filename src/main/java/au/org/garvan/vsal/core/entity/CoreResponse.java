@@ -43,6 +43,7 @@ public class CoreResponse {
     private int total;  // total # variants
     private List<String> sampleIDs;
     private String pheno;
+    private String genelist;
     private Error error;
     private String status;
 
@@ -56,7 +57,7 @@ public class CoreResponse {
         this.error = error;
     }
 
-    public CoreResponse(CoreQuery coreQuery, Long vsalTimeMs, Long dbTimeMs, int vcSize, List<CoreVariant> v, int total, List<String> sampleIDs, String pheno, Error error, String status) {
+    public CoreResponse(CoreQuery coreQuery, Long vsalTimeMs, Long dbTimeMs, int vcSize, List<CoreVariant> v, int total, List<String> sampleIDs, String pheno, String genelist, Error error, String status) {
         this.coreQuery = coreQuery;
         this.vsalTimeMs = vsalTimeMs;
         this.dbTimeMs = dbTimeMs;
@@ -65,6 +66,7 @@ public class CoreResponse {
         this.total = total;
         this.sampleIDs = sampleIDs;
         this.pheno = pheno;
+        this.genelist = genelist;
         this.error = error;
         this.status = status;
     }
@@ -131,6 +133,14 @@ public class CoreResponse {
 
     public void setPheno(String pheno) {
         this.pheno = pheno;
+    }
+
+    public String getGenelist() {
+        return genelist;
+    }
+
+    public void setGenelist(String genelist) {
+        this.genelist = genelist;
     }
 
     public Error getError() {

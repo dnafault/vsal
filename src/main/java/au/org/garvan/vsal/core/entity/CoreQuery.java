@@ -52,6 +52,7 @@ public class CoreQuery {
     private Boolean selectSamplesByGT = false;
     private Boolean returnAnnotations = false;
     private Boolean pheno = false;
+    private Boolean genelist = false;
     private Boolean hwe = false;
     private Boolean chi2 = false;
 
@@ -70,7 +71,7 @@ public class CoreQuery {
         this.reference = reference;
     }
 
-    public CoreQuery(Chromosome[] chromosome, int[] positionStart, int[] positionEnd, String refAllele, String altAllele, DatasetID datasetId, List<String> dbSNP, VariantType type, Reference reference, Integer regions, Integer limit, Integer skip, String jwt, List<String> samples, Boolean conj, Boolean selectSamplesByGT, Boolean returnAnnotations, Boolean pheno, Boolean hwe, Boolean chi2) {
+    public CoreQuery(Chromosome[] chromosome, int[] positionStart, int[] positionEnd, String refAllele, String altAllele, DatasetID datasetId, List<String> dbSNP, VariantType type, Reference reference, Integer regions, Integer limit, Integer skip, String jwt, List<String> samples, Boolean conj, Boolean selectSamplesByGT, Boolean returnAnnotations, Boolean pheno, Boolean genelist, Boolean hwe, Boolean chi2) {
         this.chromosome = chromosome;
         this.positionStart = positionStart;
         this.positionEnd = positionEnd;
@@ -89,6 +90,7 @@ public class CoreQuery {
         this.selectSamplesByGT = selectSamplesByGT;
         this.returnAnnotations = returnAnnotations;
         this.pheno = pheno;
+        this.genelist = genelist;
         this.hwe = hwe;
         this.chi2 = chi2;
     }
@@ -235,6 +237,14 @@ public class CoreQuery {
 
     public void setPheno(Boolean pheno) {
         this.pheno = pheno;
+    }
+
+    public Boolean getGenelist() {
+        return genelist;
+    }
+
+    public void setGenelist(Boolean genelist) {
+        this.genelist = genelist;
     }
 
     public Boolean getHwe() {
