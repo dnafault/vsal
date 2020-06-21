@@ -39,6 +39,8 @@ public class CoreQuery {
     private int[] positionEnd;
     private String refAllele;
     private String altAllele;
+    private Boolean selectHom = false;
+    private Boolean selectHet = false;
     private DatasetID datasetId;
     private List<String> dbSNP;
     private VariantType type;
@@ -71,12 +73,14 @@ public class CoreQuery {
         this.reference = reference;
     }
 
-    public CoreQuery(Chromosome[] chromosome, int[] positionStart, int[] positionEnd, String refAllele, String altAllele, DatasetID datasetId, List<String> dbSNP, VariantType type, Reference reference, Integer regions, Integer limit, Integer skip, String jwt, List<String> samples, Boolean conj, Boolean selectSamplesByGT, Boolean returnAnnotations, Boolean pheno, Boolean genelist, Boolean hwe, Boolean chi2) {
+    public CoreQuery(Chromosome[] chromosome, int[] positionStart, int[] positionEnd, String refAllele, String altAllele, Boolean selectHom, Boolean selectHet, DatasetID datasetId, List<String> dbSNP, VariantType type, Reference reference, Integer regions, Integer limit, Integer skip, String jwt, List<String> samples, Boolean conj, Boolean selectSamplesByGT, Boolean returnAnnotations, Boolean pheno, Boolean genelist, Boolean hwe, Boolean chi2) {
         this.chromosome = chromosome;
         this.positionStart = positionStart;
         this.positionEnd = positionEnd;
         this.refAllele = refAllele;
         this.altAllele = altAllele;
+        this.selectHom = selectHom;
+        this.selectHet = selectHet;
         this.datasetId = datasetId;
         this.dbSNP = dbSNP;
         this.type = type;
@@ -133,6 +137,22 @@ public class CoreQuery {
 
     public void setAltAllele(String altAllele) {
         this.altAllele = altAllele;
+    }
+
+    public Boolean getSelectHom() {
+        return selectHom;
+    }
+
+    public void setSelectHom(Boolean selectHom) {
+        this.selectHom = selectHom;
+    }
+
+    public Boolean getSelectHet() {
+        return selectHet;
+    }
+
+    public void setSelectHet(Boolean selectHet) {
+        this.selectHet = selectHet;
     }
 
     public DatasetID getDatasetId() {

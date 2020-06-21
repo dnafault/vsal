@@ -139,16 +139,11 @@ public class CoreQueryUtils {
      * Obtains a canonical query object.
      */
     public static CoreQuery getCoreQuery(String chromosome, String position_start, String position_end, String ref_allele,
-                                         String alt_allele, String ref, String dataset, List<String> dbSNP,
-                                         String type, Integer limit, Integer skip, String jwt, String samplesAsCSV,
-                                         Boolean samplesConj,
-                                         Boolean selectSamplesByGT,
-                                         Boolean returnAnnotations,
-                                         Boolean returnPheno,
-                                         Boolean returnGenelist,
-                                         Boolean returnHWE,
-                                         Boolean returnChi2,
-                                         String authz) {
+                                         String alt_allele, Boolean selectHom, Boolean selectHet, String ref, String dataset,
+                                         List<String> dbSNP, String type, Integer limit, Integer skip, String jwt,
+                                         String samplesAsCSV, Boolean samplesConj, Boolean selectSamplesByGT,
+                                         Boolean returnAnnotations, Boolean returnPheno, Boolean returnGenelist,
+                                         Boolean returnHWE, Boolean returnChi2, String authz) {
         Reference r = normalizeReference(ref);
         String refAllele= normalizeAllele(ref_allele);
         String altAllele= normalizeAllele(alt_allele);
@@ -167,8 +162,9 @@ public class CoreQueryUtils {
         Integer regions = (chr == null) ? 0 : chr.length;
         String jwtFinal = (authz != null && authz.startsWith("Bearer")) ? authz.substring("Bearer".length()).trim() : jwt;
 
-        return new CoreQuery(chr, csvStrToInt(position_start), csvStrToInt(position_end), refAllele, altAllele, datasetId, dbSNP,
-                variantType, r, regions, lim, skip, jwtFinal, samples, conj, selectSamples, retAnnot, pheno, genelist, hwe, chi2);
+        return new CoreQuery(chr, csvStrToInt(position_start), csvStrToInt(position_end), refAllele, altAllele, selectHom,
+                             selectHet, datasetId, dbSNP, variantType, r, regions, lim, skip, jwtFinal, samples, conj,
+                             selectSamples, retAnnot, pheno, genelist, hwe, chi2);
     }
 
     /*

@@ -57,6 +57,10 @@ public class KuduCalls {
             ksb.addPredicate(newComparisonPredicate(schema.getColumn("ref"), KuduPredicate.ComparisonOp.EQUAL, query.getRefAllele()));
         if (query.getAltAllele() != null && !query.getAltAllele().isEmpty())
             ksb.addPredicate(newComparisonPredicate(schema.getColumn("alt"), KuduPredicate.ComparisonOp.EQUAL, query.getAltAllele()));
+        if (query.getSelectHom() && !query.getSelectHet())
+            ksb.addPredicate(newComparisonPredicate(schema.getColumn("hom"), KuduPredicate.ComparisonOp.EQUAL, true));
+        if (!query.getSelectHom() && query.getSelectHet())
+            ksb.addPredicate(newComparisonPredicate(schema.getColumn("hom"), KuduPredicate.ComparisonOp.EQUAL, false));
         if (query.getDbSNP() != null && !query.getDbSNP().isEmpty())
             ksb.addPredicate(newComparisonPredicate(schema.getColumn("rsid"), KuduPredicate.ComparisonOp.EQUAL, query.getDbSNP().get(0)));
         if (sampleId != null)
@@ -92,36 +96,38 @@ public class KuduCalls {
         int lim = (unlim) ? 0 : query.getLimit();
         Long start = System.nanoTime();
 
-        try {
-            while (region < query.getRegions()) {
-                KuduScanner scanner = getScanner(client, query.getDatasetId() + "_variants", columns, query, region, null);
-                while ((unlim || row < lim) && scanner.hasMoreRows()) {
-                    RowResultIterator results = scanner.nextRows();
-                    if (results == null) break;
-                    while ((unlim || row < lim) && results.hasNext()) {
-                        RowResult result = results.next();
-                        VariantType t = VariantType.fromByte(result.getByte(5));
-                        String type = (t == null) ? null : t.toString();
-                        CoreVariant cv = new CoreVariant(result.getString(0), result.getInt(1),
-                                (result.getInt(4)==0) ? null : " rs" + result.getInt(4),
-                                result.getString(3), result.getString(2), type, result.getFloat(7),
-                                result.getFloat(6), result.getInt(8), result.getInt(9),
-                                null, null, null, null, null, null, null);
-                        coreVariants.add(cv);
-                        ++row;
-                    }
-                }
-                scanner.close();
-                region++;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        } finally {
+        if (query.getSelectHom() || query.getSelectHet()) {
             try {
-                client.close();
+                while (region < query.getRegions()) {
+                    KuduScanner scanner = getScanner(client, query.getDatasetId() + "_variants", columns, query, region, null);
+                    while ((unlim || row < lim) && scanner.hasMoreRows()) {
+                        RowResultIterator results = scanner.nextRows();
+                        if (results == null) break;
+                        while ((unlim || row < lim) && results.hasNext()) {
+                            RowResult result = results.next();
+                            VariantType t = VariantType.fromByte(result.getByte(5));
+                            String type = (t == null) ? null : t.toString();
+                            CoreVariant cv = new CoreVariant(result.getString(0), result.getInt(1),
+                                    (result.getInt(4) == 0) ? null : " rs" + result.getInt(4),
+                                    result.getString(3), result.getString(2), type, result.getFloat(7),
+                                    result.getFloat(6), result.getInt(8), result.getInt(9),
+                                    null, null, null, null, null, null, null);
+                            coreVariants.add(cv);
+                            ++row;
+                        }
+                    }
+                    scanner.close();
+                    region++;
+                }
             } catch (Exception e) {
                 e.printStackTrace();
+                throw new RuntimeException(e);
+            } finally {
+                try {
+                    client.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
         Long elapsedDbMs = (System.nanoTime() - start) / CoreService.NANO_TO_MILLI;

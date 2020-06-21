@@ -115,6 +115,10 @@ public class AsyncKuduCalls {
             aksb.addPredicate(newComparisonPredicate(schema.getColumn("ref"), KuduPredicate.ComparisonOp.EQUAL, query.getRefAllele()));
         if (query.getAltAllele() != null && !query.getAltAllele().isEmpty())
             aksb.addPredicate(newComparisonPredicate(schema.getColumn("alt"), KuduPredicate.ComparisonOp.EQUAL, query.getAltAllele()));
+        if (query.getSelectHom() && !query.getSelectHet())
+            aksb.addPredicate(newComparisonPredicate(schema.getColumn("hom"), KuduPredicate.ComparisonOp.EQUAL, true));
+        if (!query.getSelectHom() && query.getSelectHet())
+            aksb.addPredicate(newComparisonPredicate(schema.getColumn("hom"), KuduPredicate.ComparisonOp.EQUAL, false));
         if (query.getDbSNP() != null && !query.getDbSNP().isEmpty())
             aksb.addPredicate(newComparisonPredicate(schema.getColumn("rsid"), KuduPredicate.ComparisonOp.EQUAL, query.getDbSNP().get(0)));
         if (sampleId != null)
@@ -152,6 +156,10 @@ public class AsyncKuduCalls {
             aksb.addPredicate(newComparisonPredicate(schema.getColumn("start"), KuduPredicate.ComparisonOp.GREATER_EQUAL, query.getPositionStart()[region]));
         if (query.getPositionEnd() != null)
             aksb.addPredicate(newComparisonPredicate(schema.getColumn("start"), KuduPredicate.ComparisonOp.LESS_EQUAL, query.getPositionEnd()[region]));
+        if (query.getSelectHom() && !query.getSelectHet())
+            aksb.addPredicate(newComparisonPredicate(schema.getColumn("hom"), KuduPredicate.ComparisonOp.EQUAL, true));
+        if (!query.getSelectHom() && query.getSelectHet())
+            aksb.addPredicate(newComparisonPredicate(schema.getColumn("hom"), KuduPredicate.ComparisonOp.EQUAL, false));
         return aksb.build();
     }
 
@@ -163,62 +171,64 @@ public class AsyncKuduCalls {
         List< Deferred<List<CoreVariant>>> deferredVariantsWithCohortWideStats = new ArrayList<>(query.getRegions());
         List<String> columns = Arrays.asList("contig", "start", "ref", "alt", "af", "ac", "homc", "hetc"); // projection
 
-        try {
-            final class AsyncVariantsByRegion {
-                final private AsyncKuduScanner asyncScanner;
+        if (query.getSelectHom() || query.getSelectHet()) {
+            try {
+                final class AsyncVariantsByRegion {
+                    final private AsyncKuduScanner asyncScanner;
 
-                private AsyncVariantsByRegion(AsyncKuduScanner asyncScanner) {
-                    this.asyncScanner = asyncScanner;
-                }
+                    private AsyncVariantsByRegion(AsyncKuduScanner asyncScanner) {
+                        this.asyncScanner = asyncScanner;
+                    }
 
-                final class AsyncProcessRows implements Callback<Deferred<List<CoreVariant>>, RowResultIterator> {
-                    private final List<CoreVariant> res = new LinkedList<>();
+                    final class AsyncProcessRows implements Callback<Deferred<List<CoreVariant>>, RowResultIterator> {
+                        private final List<CoreVariant> res = new LinkedList<>();
 
-                    @Override
-                    public Deferred<List<CoreVariant>> call(RowResultIterator results) {
-                        if (results != null) {
-                            for (RowResult row : results) {
-                                CoreVariant cv = new CoreVariant(row.getString(0), row.getInt(1), null,
-                                        row.getString(3), row.getString(2), null, row.getFloat(5),
-                                        row.getFloat(4), row.getInt(6), row.getInt(7),
-                                        null, null, null, null, null, null, null);
-                                res.add(cv);
+                        @Override
+                        public Deferred<List<CoreVariant>> call(RowResultIterator results) {
+                            if (results != null) {
+                                for (RowResult row : results) {
+                                    CoreVariant cv = new CoreVariant(row.getString(0), row.getInt(1), null,
+                                            row.getString(3), row.getString(2), null, row.getFloat(5),
+                                            row.getFloat(4), row.getInt(6), row.getInt(7),
+                                            null, null, null, null, null, null, null);
+                                    res.add(cv);
+                                }
+                                if (asyncScanner.hasMoreRows()) {
+                                    return asyncScanner.nextRows().addBothDeferring(this);
+                                }
                             }
-                            if (asyncScanner.hasMoreRows()) {
-                                return asyncScanner.nextRows().addBothDeferring(this);
-                            }
+                            return Deferred.fromResult(res);
                         }
-                        return Deferred.fromResult(res);
+                    }
+
+                    private Deferred<List<CoreVariant>> processAllRows() {
+                        return asyncScanner.nextRows().addBothDeferring(new AsyncProcessRows());
                     }
                 }
 
-                private Deferred<List<CoreVariant>> processAllRows() {
-                    return asyncScanner.nextRows().addBothDeferring(new AsyncProcessRows());
+                // async calls
+                for (int i = 0; i < query.getRegions(); ++i) {
+                    final AsyncKuduScanner asyncScanner = getAsyncScannerVariantTableByRegion(asyncClient, variantTable, columns, query, i);
+                    variantScanners.add(asyncScanner); // to close them later
+                    final AsyncVariantsByRegion coreVarWithStats = new AsyncVariantsByRegion(asyncScanner);
+                    deferredVariantsWithCohortWideStats.add(coreVarWithStats.processAllRows());
                 }
-            }
 
-            // async calls
-            for (int i=0; i < query.getRegions(); ++i) {
-                final AsyncKuduScanner asyncScanner = getAsyncScannerVariantTableByRegion(asyncClient, variantTable, columns, query, i);
-                variantScanners.add(asyncScanner); // to close them later
-                final AsyncVariantsByRegion coreVarWithStats = new AsyncVariantsByRegion(asyncScanner);
-                deferredVariantsWithCohortWideStats.add(coreVarWithStats.processAllRows());
-            }
+                // sync deferred
+                for (int i = 0; i < query.getRegions(); ++i) {
+                    coreVariants.addAll(deferredVariantsWithCohortWideStats.get(i).join());
+                }
 
-            // sync deferred
-            for (int i=0; i < query.getRegions(); ++i) {
-                coreVariants.addAll(deferredVariantsWithCohortWideStats.get(i).join());
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        } finally {
-            try {
-                for (AsyncKuduScanner s: variantScanners) s.close();
-                asyncClient.close();
             } catch (Exception e) {
                 e.printStackTrace();
+                throw new RuntimeException(e);
+            } finally {
+                try {
+                    for (AsyncKuduScanner s : variantScanners) s.close();
+                    asyncClient.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
 
@@ -233,81 +243,83 @@ public class AsyncKuduCalls {
         List<String> columns = Arrays.asList("contig", "start", "ref", "alt", "rsid", "vtype", "gt"); // projection
         Map<Integer, List<Variant>> variantsBySamples = new HashMap<>(sampleIds.size()); // results
 
-        try {
-            while (region < query.getRegions()) {
+        if (query.getSelectHom() || query.getSelectHet()) {
+            try {
+                while (region < query.getRegions()) {
 
-                final class AsyncVariantsBySample {
-                    final private AsyncKuduScanner asyncScanner;
+                    final class AsyncVariantsBySample {
+                        final private AsyncKuduScanner asyncScanner;
 
-                    private AsyncVariantsBySample(AsyncKuduScanner asyncScanner) {
-                        this.asyncScanner = asyncScanner;
-                    }
+                        private AsyncVariantsBySample(AsyncKuduScanner asyncScanner) {
+                            this.asyncScanner = asyncScanner;
+                        }
 
-                    final class AsyncProcessRows implements Callback<Deferred<List<Variant>>, RowResultIterator> {
-                        private final List<Variant> res = new LinkedList<>();
+                        final class AsyncProcessRows implements Callback<Deferred<List<Variant>>, RowResultIterator> {
+                            private final List<Variant> res = new LinkedList<>();
 
-                        @Override
-                        public Deferred<List<Variant>> call(RowResultIterator results) {
-                            if (results != null) {
-                                for (RowResult row : results) {
-                                    VariantType t = VariantType.fromByte(row.getByte(5));
-                                    String type = (t == null) ? null : t.toString();
-                                    CoreVariant cv = new CoreVariant(row.getString(0), row.getInt(1),
-                                            (row.getInt(4) == 0) ? null : " rs" + row.getInt(4),
-                                            row.getString(3), row.getString(2), type,
-                                            null, null, null, null, null, null, null, null, null, null, null);
-                                    res.add(new Variant(cv, row.getString(6)));
+                            @Override
+                            public Deferred<List<Variant>> call(RowResultIterator results) {
+                                if (results != null) {
+                                    for (RowResult row : results) {
+                                        VariantType t = VariantType.fromByte(row.getByte(5));
+                                        String type = (t == null) ? null : t.toString();
+                                        CoreVariant cv = new CoreVariant(row.getString(0), row.getInt(1),
+                                                (row.getInt(4) == 0) ? null : " rs" + row.getInt(4),
+                                                row.getString(3), row.getString(2), type,
+                                                null, null, null, null, null, null, null, null, null, null, null);
+                                        res.add(new Variant(cv, row.getString(6)));
+                                    }
+                                    if (asyncScanner.hasMoreRows()) {
+                                        return asyncScanner.nextRows().addBothDeferring(this);
+                                    }
                                 }
-                                if (asyncScanner.hasMoreRows()) {
-                                    return asyncScanner.nextRows().addBothDeferring(this);
-                                }
+                                return Deferred.fromResult(res);
                             }
-                            return Deferred.fromResult(res);
+                        }
+
+                        private Deferred<List<Variant>> processAllRows() {
+                            return asyncScanner.nextRows().addBothDeferring(new AsyncProcessRows());
                         }
                     }
 
-                    private Deferred<List<Variant>> processAllRows() {
-                        return asyncScanner.nextRows().addBothDeferring(new AsyncProcessRows());
+                    List<AsyncKuduScanner> sampleScanners = new LinkedList<>(); // to close them later
+                    Map<Integer, Deferred<List<Variant>>> deferredVariantsBySamples = new HashMap<>(sampleIds.size());
+
+                    // async calls
+                    for (Integer sid : sampleIds) {
+                        final AsyncKuduScanner asyncScanner = getAsyncScannerGT(asyncClient, gtTable, columns, query, region, sid);
+                        sampleScanners.add(asyncScanner); // to close them later
+                        final AsyncVariantsBySample allVars = new AsyncVariantsBySample(asyncScanner);
+                        deferredVariantsBySamples.put(sid, allVars.processAllRows());
                     }
+
+                    // sync deferred
+                    for (Integer sid : deferredVariantsBySamples.keySet()) {
+                        List<Variant> variantsInSample = variantsBySamples.get(sid);
+                        if (variantsInSample == null)
+                            variantsInSample = deferredVariantsBySamples.get(sid).join();
+                        else
+                            variantsInSample.addAll(deferredVariantsBySamples.get(sid).join());
+                        variantsBySamples.put(sid, variantsInSample);
+                    }
+
+                    try {
+                        for (AsyncKuduScanner s : sampleScanners) s.close();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    region++;
                 }
-
-                List<AsyncKuduScanner> sampleScanners = new LinkedList<>(); // to close them later
-                Map<Integer, Deferred<List<Variant>>> deferredVariantsBySamples = new HashMap<>(sampleIds.size());
-
-                // async calls
-                for (Integer sid: sampleIds) {
-                    final AsyncKuduScanner asyncScanner = getAsyncScannerGT(asyncClient, gtTable, columns, query, region, sid);
-                    sampleScanners.add(asyncScanner); // to close them later
-                    final AsyncVariantsBySample allVars = new AsyncVariantsBySample(asyncScanner);
-                    deferredVariantsBySamples.put(sid, allVars.processAllRows());
-                }
-
-                // sync deferred
-                for (Integer sid: deferredVariantsBySamples.keySet()) {
-                    List<Variant> variantsInSample = variantsBySamples.get(sid);
-                    if (variantsInSample == null)
-                        variantsInSample = deferredVariantsBySamples.get(sid).join();
-                    else
-                        variantsInSample.addAll(deferredVariantsBySamples.get(sid).join());
-                    variantsBySamples.put(sid, variantsInSample);
-                }
-
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            } finally {
                 try {
-                    for (AsyncKuduScanner s: sampleScanners) s.close();
+                    asyncClient.close();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-
-                region++;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        } finally {
-            try {
-                asyncClient.close();
-            } catch (Exception e) {
-                e.printStackTrace();
             }
         }
 
@@ -488,69 +500,71 @@ public class AsyncKuduCalls {
         List<String> columns = Arrays.asList("sample_id");
         Map<Integer, Boolean> bySamples = new HashMap<>(allSampleIds.size()); // results
 
-        try {
-            while (region < query.getRegions()) {
+        if (query.getSelectHom() || query.getSelectHet()) {
+            try {
+                while (region < query.getRegions()) {
 
-                final class AsyncVariantsExistBySample {
-                    final private AsyncKuduScanner asyncScanner;
+                    final class AsyncVariantsExistBySample {
+                        final private AsyncKuduScanner asyncScanner;
 
-                    private AsyncVariantsExistBySample(AsyncKuduScanner asyncScanner) {
-                        this.asyncScanner = asyncScanner;
-                    }
+                        private AsyncVariantsExistBySample(AsyncKuduScanner asyncScanner) {
+                            this.asyncScanner = asyncScanner;
+                        }
 
-                    final class AsyncProcessRows implements Callback<Deferred<Boolean>, RowResultIterator> {
-                        private Boolean res = false;
+                        final class AsyncProcessRows implements Callback<Deferred<Boolean>, RowResultIterator> {
+                            private Boolean res = false;
 
-                        @Override
-                        public Deferred<Boolean> call(RowResultIterator results) {
-                            if (results != null && results.hasNext()) {
-                                res = true; // there is at least one variant in a region in a given sample
+                            @Override
+                            public Deferred<Boolean> call(RowResultIterator results) {
+                                if (results != null && results.hasNext()) {
+                                    res = true; // there is at least one variant in a region in a given sample
+                                }
+                                if (!res && asyncScanner.hasMoreRows()) { // required!
+                                    return asyncScanner.nextRows().addBothDeferring(this);
+                                }
+                                return Deferred.fromResult(res);
                             }
-                            if (!res && asyncScanner.hasMoreRows()) { // required!
-                                return asyncScanner.nextRows().addBothDeferring(this);
-                            }
-                            return Deferred.fromResult(res);
+                        }
+
+                        private Deferred<Boolean> processAllRows() {
+                            return asyncScanner.nextRows().addBothDeferring(new AsyncProcessRows());
                         }
                     }
 
-                    private Deferred<Boolean> processAllRows() {
-                        return asyncScanner.nextRows().addBothDeferring(new AsyncProcessRows());
+                    List<AsyncKuduScanner> sampleScanners = new LinkedList<>(); // to close them later
+                    Map<Integer, Deferred<Boolean>> deferredBySamples = new HashMap<>(allSampleIds.size());
+
+                    // async calls
+                    for (Integer sid : allSampleIds) {
+                        final AsyncKuduScanner asyncScanner = getAsyncScannerGT(asyncClient, gtTable, columns, query, region, sid);
+                        sampleScanners.add(asyncScanner); // to close them later
+                        final AsyncVariantsExistBySample allVars = new AsyncVariantsExistBySample(asyncScanner);
+                        deferredBySamples.put(sid, allVars.processAllRows());
                     }
+
+                    // sync deferred
+                    for (Integer sid : deferredBySamples.keySet()) {
+                        Boolean exist = deferredBySamples.get(sid).join();
+                        if (exist) bySamples.put(sid, true);
+                    }
+
+                    try {
+                        for (AsyncKuduScanner s : sampleScanners) s.close();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    region++;
                 }
-
-                List<AsyncKuduScanner> sampleScanners = new LinkedList<>(); // to close them later
-                Map<Integer, Deferred<Boolean>> deferredBySamples = new HashMap<>(allSampleIds.size());
-
-                // async calls
-                for (Integer sid: allSampleIds) {
-                    final AsyncKuduScanner asyncScanner = getAsyncScannerGT(asyncClient, gtTable, columns, query, region, sid);
-                    sampleScanners.add(asyncScanner); // to close them later
-                    final AsyncVariantsExistBySample allVars = new AsyncVariantsExistBySample(asyncScanner);
-                    deferredBySamples.put(sid, allVars.processAllRows());
-                }
-
-                // sync deferred
-                for (Integer sid: deferredBySamples.keySet()) {
-                    Boolean exist = deferredBySamples.get(sid).join();
-                    if (exist) bySamples.put(sid, true);
-                }
-
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            } finally {
                 try {
-                    for (AsyncKuduScanner s: sampleScanners) s.close();
+                    asyncClient.close();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-
-                region++;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        } finally {
-            try {
-                asyncClient.close();
-            } catch (Exception e) {
-                e.printStackTrace();
             }
         }
 

@@ -36,6 +36,8 @@ public class POSTParamsJaxBean {
     @XmlElement public String positionEnd;
     @XmlElement public String refAllele;
     @XmlElement public String altAllele;
+    @XmlElement public Boolean hom;
+    @XmlElement public Boolean het;
     @XmlElement public String dataset;
     @XmlElement public List<String> dbSNP;
     @XmlElement public String type;
