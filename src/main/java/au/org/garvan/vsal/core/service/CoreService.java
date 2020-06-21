@@ -115,7 +115,7 @@ public class CoreService {
 
         if (q.getPheno()) {
             try {
-                if (q.getJwt() == null) {
+                if (q.getJwt() == null && !q.getDatasetId().toString().equalsIgnoreCase("demo")) {
                     Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
                     Error errorResource = new Error("JWT verification failed", "JWT is required for phenotypes");
                     res = new CoreResponse(q, elapsed, errorResource);
