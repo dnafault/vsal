@@ -35,17 +35,17 @@ public class Query {
     private Chromosome chromosome;
     private Integer position;
     private Reference reference;
-    private String dataset_id;
+    private String datasetId;
 
     /*
      * required field(s): allele, chromosome, position, reference
      */
-    public Query(String allele, Chromosome chromosome, Integer position, Reference reference, String dataset_id) {
+    public Query(String allele, Chromosome chromosome, Integer position, Reference reference, String datasetId) {
         this.allele = allele;
         this.chromosome = chromosome;
         this.position = position;
         this.reference = reference;
-        this.dataset_id = dataset_id;
+        this.datasetId = datasetId;
     }
 
     public Query() {
@@ -84,11 +84,11 @@ public class Query {
         this.position = position;
     }
 
-    public String getDataset_id() {
-        return dataset_id;
+    public String getDatasetId() {
+        return datasetId;
     }
 
-    public void setDataset_id(String dataset_id) {
-        this.dataset_id = dataset_id;
+    public void setDatasetId(String datasetId) {
+        this.datasetId = datasetId;
     }
 }

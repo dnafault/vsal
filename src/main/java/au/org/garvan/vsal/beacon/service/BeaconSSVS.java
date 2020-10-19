@@ -3,6 +3,7 @@ package au.org.garvan.vsal.beacon.service;
 import au.org.garvan.vsal.beacon.entity.*;
 import au.org.garvan.vsal.beacon.rest.SSVSCalls;
 import au.org.garvan.vsal.beacon.util.QueryUtils;
+import au.org.garvan.vsal.core.entity.DatasetID;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.RequestScoped;
@@ -18,7 +19,7 @@ import java.util.List;
  * @version 1.0
  */
 @RequestScoped
-public class MgrbBeaconSSVS implements BeaconService {
+public class BeaconSSVS implements BeaconService {
 
     private Dataset dataset;
     private List<Dataset> datasets;
@@ -67,6 +68,10 @@ public class MgrbBeaconSSVS implements BeaconService {
             au.org.garvan.vsal.beacon.entity.Error errorResource = new au.org.garvan.vsal.beacon.entity.Error("Incorrect Query", "Allele: \'" + allele + "\' is incorrect.");
             Response responseResource = new Response(null, null, null, null, errorResource);
             return new BeaconResponse(beacon.getId(), QueryUtils.getQuery(chrom, pos, allele, ref, dataset), responseResource);
+        } else if (DatasetID.fromString(q.getDatasetId()) == null) {
+            au.org.garvan.vsal.beacon.entity.Error errorResource = new au.org.garvan.vsal.beacon.entity.Error("Incorrect Query", "Dataset: \'" + dataset + "\' is unknown.");
+            Response responseResource = new Response(null, null, null, null, errorResource);
+            return new BeaconResponse(beacon.getId(), QueryUtils.getQuery(chrom, pos, allele, ref, dataset), responseResource);
         }
 
         try {
@@ -80,6 +85,7 @@ public class MgrbBeaconSSVS implements BeaconService {
         } catch (Exception e) {
             au.org.garvan.vsal.beacon.entity.Error errorResource = new au.org.garvan.vsal.beacon.entity.Error("VS Runtime exception", e.getMessage());
             Response responseResource = new Response(null, null, null, null, errorResource);
+            q.setPosition(q.getPosition()-1);
             return new BeaconResponse(beacon.getId(), q, responseResource);
         }
     }
