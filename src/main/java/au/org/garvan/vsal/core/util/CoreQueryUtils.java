@@ -157,14 +157,16 @@ public class CoreQueryUtils {
         Boolean genelist = (returnGenelist == null) ? false : returnGenelist;
         Boolean hwe = (returnHWE == null) ? false : returnHWE;
         Boolean chi2 = (returnChi2 == null) ? false : returnChi2;
+        Boolean hom = (selectHom == null) ? false : selectHom;
+        Boolean het = (selectHet == null) ? false : selectHet;
         List<String> samples = (samplesAsCSV != null) ? Arrays.asList(samplesAsCSV.split("\\s*,\\s*")) : null;
         Chromosome[] chr = csvStrToChr(chromosome);
         Integer regions = (chr == null) ? 0 : chr.length;
         String jwtFinal = (authz != null && authz.startsWith("Bearer")) ? authz.substring("Bearer".length()).trim() : jwt;
 
-        return new CoreQuery(chr, csvStrToInt(position_start), csvStrToInt(position_end), refAllele, altAllele, selectHom,
-                             selectHet, datasetId, dbSNP, variantType, r, regions, lim, skip, jwtFinal, samples, conj,
-                             selectSamples, retAnnot, pheno, genelist, hwe, chi2);
+        return new CoreQuery(chr, csvStrToInt(position_start), csvStrToInt(position_end), refAllele, altAllele,
+                             hom, het, datasetId, dbSNP, variantType, r, regions, lim, skip, jwtFinal, samples,
+                             conj, selectSamples, retAnnot, pheno, genelist, hwe, chi2);
     }
 
     /*
