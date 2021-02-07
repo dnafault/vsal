@@ -171,7 +171,8 @@ public class CoreService {
                     Error errorResource = new Error("JWT verification failed", "JWT is required for samples selection");
                     res = new CoreResponse(q, elapsed, errorResource);
                 } else {
-                    if (!q.getDatasetId().toString().equalsIgnoreCase("demo"))
+                    if (!q.getDatasetId().toString().equalsIgnoreCase("demo") &&
+                        !q.getDatasetId().toString().equalsIgnoreCase("trio"))
                         CoreJWT.verifyJWT(q.getJwt(), q.getDatasetId().toString().toLowerCase() + "/gt");
                     AbstractMap.SimpleImmutableEntry<Long,List<String>> sampleIDs = au.org.garvan.vsal.kudu.service.AsyncKuduCalls.selectSamplesByGT(q);
 
@@ -195,7 +196,8 @@ public class CoreService {
                     Error errorResource = new Error("JWT verification failed", "JWT is required for samples filtering");
                     res = new CoreResponse(q, elapsed, errorResource);
                 } else {
-                    if (!q.getDatasetId().toString().equalsIgnoreCase("demo"))
+                    if (!q.getDatasetId().toString().equalsIgnoreCase("demo") &&
+                        !q.getDatasetId().toString().equalsIgnoreCase("trio"))
                         CoreJWT.verifyJWT(q.getJwt(), q.getDatasetId().toString().toLowerCase() + "/gt");
                     samples = q.getSamples();
                     if (samples.isEmpty()) {
