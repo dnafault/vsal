@@ -118,7 +118,7 @@ public class CoreQueryUtils {
      */
     private static Reference normalizeReference(String ref) {
         if (ref == null || ref.isEmpty()) {
-            return null;
+            return Reference.HG19;
         }
 
         for (Reference s : chromMapping.keySet()) {
@@ -139,12 +139,12 @@ public class CoreQueryUtils {
      * Obtains a canonical query object.
      */
     public static CoreQuery getCoreQuery(String chromosome, String position_start, String position_end, String ref_allele,
-                                         String alt_allele, Boolean selectHom, Boolean selectHet, String ref, String dataset,
+                                         String alt_allele, Boolean selectHom, Boolean selectHet, String ref_build, String dataset,
                                          List<String> dbSNP, String type, Integer limit, Integer skip, String jwt,
                                          String samplesAsCSV, Boolean samplesConj, Boolean selectSamplesByGT,
                                          Boolean returnAnnotations, Boolean returnPheno, Boolean returnGenelist,
                                          Boolean returnHWE, Boolean returnChi2, String authz) {
-        Reference r = normalizeReference(ref);
+        Reference ref = normalizeReference(ref_build);
         String refAllele= normalizeAllele(ref_allele);
         String altAllele= normalizeAllele(alt_allele);
         DatasetID datasetId = DatasetID.fromString(dataset);
@@ -165,7 +165,7 @@ public class CoreQueryUtils {
         String jwtFinal = (authz != null && authz.startsWith("Bearer")) ? authz.substring("Bearer".length()).trim() : jwt;
 
         return new CoreQuery(chr, csvStrToInt(position_start), csvStrToInt(position_end), refAllele, altAllele,
-                             hom, het, datasetId, dbSNP, variantType, r, regions, lim, skip, jwtFinal, samples,
+                             hom, het, datasetId, dbSNP, variantType, ref, regions, lim, skip, jwtFinal, samples,
                              conj, selectSamples, retAnnot, pheno, genelist, hwe, chi2);
     }
 

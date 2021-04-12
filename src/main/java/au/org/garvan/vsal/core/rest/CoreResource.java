@@ -107,12 +107,13 @@ public class CoreResource {
                               @QueryParam("genelist") Boolean genelist,
                               @QueryParam("hwe") Boolean hwe,
                               @QueryParam("chi2") Boolean chi2,
+                              @QueryParam("ref") String ref,
                               @Context HttpHeaders headers) {
 
         List<String> authzScheme = headers.getRequestHeader("Authorization");
         String authz = (authzScheme != null && !authzScheme.isEmpty()) ? authzScheme.get(0) : null;
         CoreQuery coreQuery = CoreQueryUtils.getCoreQuery(chromosome, positionStart, positionEnd, refAllele, altAllele,
-                hom, het, "hg19", dataset, dbSNP, type, limit, skip, jwt, samples, conj, selectSamplesByGT,
+                hom, het, ref, dataset, dbSNP, type, limit, skip, jwt, samples, conj, selectSamplesByGT,
                 returnAnnotations, pheno, genelist, hwe, chi2, authz);
 
         return service.query(coreQuery);
@@ -131,10 +132,12 @@ public class CoreResource {
         List<String> authzScheme = headers.getRequestHeader("Authorization");
         String authz = (authzScheme != null && !authzScheme.isEmpty()) ? authzScheme.get(0) : null;
         CoreQuery coreQuery = CoreQueryUtils.getCoreQuery(params.chromosome, params.positionStart, params.positionEnd,
-                params.refAllele, params.altAllele, params.hom, params.het, "hg19", params.dataset, params.dbSNP,
+                params.refAllele, params.altAllele, params.hom, params.het, params.ref, params.dataset, params.dbSNP,
                 params.type, params.limit, params.skip, params.jwt, params.samples, params.conj, params.selectSamplesByGT,
                 params.returnAnnotations, params.pheno, params.genelist, params.hwe, params.chi2, authz);
 
         return service.query(coreQuery);
     }
+
+
 }

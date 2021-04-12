@@ -38,6 +38,7 @@ import org.apache.kudu.client.*;
 
 import java.util.*;
 
+import static au.org.garvan.vsal.kudu.service.KuduCalls.getTableName;
 import static org.apache.kudu.client.KuduPredicate.newComparisonPredicate;
 
 public class AsyncKuduCalls {
@@ -231,7 +232,8 @@ public class AsyncKuduCalls {
 
     private static Map<Integer, List<Variant>> asyncVariantsBySample(CoreQuery query, List<Integer> sampleIds) {
         AsyncKuduClient asyncClient = new AsyncKuduClient.AsyncKuduClientBuilder(ReadConfig.getProp().getProperty("kuduMaster")).build();
-        KuduTable gtTable = addCallBackToTable(asyncClient, query.getDatasetId() + "_gt");
+        String tableName = getTableName(query.getDatasetId(), query.getReference(), "_gt");
+        KuduTable gtTable = addCallBackToTable(asyncClient, tableName);
 
         int region = 0;
         List<String> columns = Arrays.asList("contig", "start", "ref", "alt", "rsid", "vtype", "gt"); // projection
@@ -394,7 +396,8 @@ public class AsyncKuduCalls {
     public static AbstractMap.SimpleImmutableEntry<Long,List<CoreVariant>> variantsInVirtualCohort(CoreQuery query, List<String> samples) {
         Long start = System.nanoTime();
         // calls to Kudu
-        List<Integer> sampleIds = getSampleIDsByNames(query.getDatasetId() + "_samples", samples);
+        String tableName = getTableName(query.getDatasetId(), query.getReference(), "_samples");
+        List<Integer> sampleIds = getSampleIDsByNames(tableName, samples);
         Map<Integer, List<Variant>> variantsBySamples = asyncVariantsBySample(query, sampleIds);
 
         // Select unique variants
@@ -485,9 +488,11 @@ public class AsyncKuduCalls {
         // implementation similar to asyncVariantsBySample(), but doesn't keep variants - only flags
 
         Long start = System.nanoTime();
-        Map<Integer, String> allSamples = getAllSamples(query.getDatasetId() + "_samples");
+        String tableName = getTableName(query.getDatasetId(), query.getReference(), "_samples");
+        Map<Integer, String> allSamples = getAllSamples(tableName);
         AsyncKuduClient asyncClient = new AsyncKuduClient.AsyncKuduClientBuilder(ReadConfig.getProp().getProperty("kuduMaster")).build();
-        KuduTable gtTable = addCallBackToTable(asyncClient, query.getDatasetId() + "_gt");
+        String gtTableName = getTableName(query.getDatasetId(), query.getReference(), "_gt");
+        KuduTable gtTable = addCallBackToTable(asyncClient, gtTableName);
 
         int region = 0;
         Set<Integer> allSampleIds = allSamples.keySet();

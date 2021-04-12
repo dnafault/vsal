@@ -25,8 +25,10 @@
 
 package au.org.garvan.vsal.kudu.service;
 
+import au.org.garvan.vsal.beacon.entity.Reference;
 import au.org.garvan.vsal.core.entity.CoreQuery;
 import au.org.garvan.vsal.core.entity.CoreVariant;
+import au.org.garvan.vsal.core.entity.DatasetID;
 import au.org.garvan.vsal.core.entity.VariantType;
 import au.org.garvan.vsal.core.service.CoreService;
 import au.org.garvan.vsal.core.util.ReadConfig;
@@ -92,7 +94,8 @@ public class KuduCalls {
 
         try {
             while (region < query.getRegions()) {
-                KuduScanner scanner = getScanner(client, query.getDatasetId() + "_variants", columns, query, region, null);
+                String tableName = getTableName(query.getDatasetId(), query.getReference(), "_variants");
+                KuduScanner scanner = getScanner(client, tableName, columns, query, region, null);
                 while ((unlim || row < lim) && scanner.hasMoreRows()) {
                     RowResultIterator results = scanner.nextRows();
                     if (results == null) break;
@@ -124,5 +127,15 @@ public class KuduCalls {
         }
         Long elapsedDbMs = (System.nanoTime() - start) / CoreService.NANO_TO_MILLI;
         return new AbstractMap.SimpleImmutableEntry(elapsedDbMs, coreVariants);
+    }
+
+    public static String getTableName(DatasetID dataset, Reference ref, String suffix) {
+        String referenceBuild;
+        if (ref == null)
+            referenceBuild = ""; // all unknown refs are mapped to default dataset
+        else if (ref.toString().equalsIgnoreCase("hg19"))
+            referenceBuild = "";
+        else referenceBuild = "_" + ref.toString();
+        return dataset + referenceBuild + suffix;
     }
 }
