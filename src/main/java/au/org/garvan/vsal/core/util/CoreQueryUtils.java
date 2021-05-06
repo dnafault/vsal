@@ -139,12 +139,12 @@ public class CoreQueryUtils {
      * Obtains a canonical query object.
      */
     public static CoreQuery getCoreQuery(String chromosome, String position_start, String position_end, String ref_allele,
-                                         String alt_allele, Boolean selectHom, Boolean selectHet, String ref_build, String dataset,
+                                         String alt_allele, Boolean selectHom, Boolean selectHet, String asm, String dataset,
                                          List<String> dbSNP, String type, Integer limit, Integer skip, String jwt,
                                          String samplesAsCSV, Boolean samplesConj, Boolean selectSamplesByGT,
                                          Boolean returnAnnotations, Boolean returnPheno, Boolean returnGenelist,
                                          Boolean returnHWE, Boolean returnChi2, String authz) {
-        Reference ref = normalizeReference(ref_build);
+        Reference ref = normalizeReference(asm);
         String refAllele= normalizeAllele(ref_allele);
         String altAllele= normalizeAllele(alt_allele);
         DatasetID datasetId = DatasetID.fromString(dataset);

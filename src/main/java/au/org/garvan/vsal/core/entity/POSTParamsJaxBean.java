@@ -52,5 +52,5 @@ public class POSTParamsJaxBean {
     @XmlElement public Boolean genelist;
     @XmlElement public Boolean hwe;
     @XmlElement public Boolean chi2;
-    @XmlElement public String ref;
+    @XmlElement public String asm;
 }

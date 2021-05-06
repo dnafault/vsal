@@ -83,6 +83,7 @@ public class CoreResource {
      * @param pheno return phenotypes, boolean
      * @param hwe return p-value for Chi-squared test for deviation from Hardy-Weinberg Equilibrium, boolean
      * @param chi2 return Pearson's chi-squared test p-value and odds ratio, boolean
+     * @param asm reference assembly {"hg38", "hg19", "hg18", "hg17", "hg16"}, string
      * @return {@link CoreResponse}
      */
     @GET
@@ -107,13 +108,13 @@ public class CoreResource {
                               @QueryParam("genelist") Boolean genelist,
                               @QueryParam("hwe") Boolean hwe,
                               @QueryParam("chi2") Boolean chi2,
-                              @QueryParam("ref") String ref,
+                              @QueryParam("asm") String asm,
                               @Context HttpHeaders headers) {
 
         List<String> authzScheme = headers.getRequestHeader("Authorization");
         String authz = (authzScheme != null && !authzScheme.isEmpty()) ? authzScheme.get(0) : null;
         CoreQuery coreQuery = CoreQueryUtils.getCoreQuery(chromosome, positionStart, positionEnd, refAllele, altAllele,
-                hom, het, ref, dataset, dbSNP, type, limit, skip, jwt, samples, conj, selectSamplesByGT,
+                hom, het, asm, dataset, dbSNP, type, limit, skip, jwt, samples, conj, selectSamplesByGT,
                 returnAnnotations, pheno, genelist, hwe, chi2, authz);
 
         return service.query(coreQuery);
@@ -132,12 +133,10 @@ public class CoreResource {
         List<String> authzScheme = headers.getRequestHeader("Authorization");
         String authz = (authzScheme != null && !authzScheme.isEmpty()) ? authzScheme.get(0) : null;
         CoreQuery coreQuery = CoreQueryUtils.getCoreQuery(params.chromosome, params.positionStart, params.positionEnd,
-                params.refAllele, params.altAllele, params.hom, params.het, params.ref, params.dataset, params.dbSNP,
+                params.refAllele, params.altAllele, params.hom, params.het, params.asm, params.dataset, params.dbSNP,
                 params.type, params.limit, params.skip, params.jwt, params.samples, params.conj, params.selectSamplesByGT,
                 params.returnAnnotations, params.pheno, params.genelist, params.hwe, params.chi2, authz);
 
         return service.query(coreQuery);
     }
-
-
 }
