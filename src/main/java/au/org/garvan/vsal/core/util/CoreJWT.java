@@ -38,23 +38,39 @@ import com.auth0.jwk.JwkProvider;
 import com.auth0.jwk.UrlJwkProvider;
 import com.auth0.jwt.interfaces.DecodedJWT;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Properties;
 
 public class CoreJWT {
-    public static void verifyJWT(String token, String jwtAccessValue)
-            throws UnsupportedEncodingException, JWTVerificationException, JwkException {
+
+    private static volatile RSAPublicKey pubKey;
+
+    public static RSAPublicKey getRSAPublicKey(String token, String issuer) {
+        RSAPublicKey key = pubKey; // single volatile read
+        if (key == null) {
+            synchronized (CoreJWT.class) {
+                if (pubKey == null) {
+                    try {
+                        // getting pub key from Auth0
+                        JwkProvider provider = new UrlJwkProvider(issuer);
+                        DecodedJWT jwt = JWT.decode(token);
+                        Jwk jwk = provider.get(jwt.getKeyId());  // Get the kid from received JWT token
+                        pubKey = (RSAPublicKey) jwk.getPublicKey();
+                        System.out.println("Public key has been acquired from Auth0");
+                    } catch (JwkException e) {
+                        e.printStackTrace();
+                    }
+                }
+                key = pubKey;
+            }
+        }
+        return key; // non-volatile local read, a tiny bit better performance
+    }
+
+    public static void verifyJWT(String token, String jwtAccessValue) throws JWTVerificationException {
         Properties p = ReadConfig.getProp();
         String issuer = p.getProperty("jwtIssuer");
-
-        // get pub key
-        JwkProvider provider = new UrlJwkProvider(issuer);
-        DecodedJWT jwt = JWT.decode(token);
-        Jwk jwk = provider.get(jwt.getKeyId());  // Get the kid from received JWT token
-        RSAPublicKey pubKey = (RSAPublicKey) jwk.getPublicKey();
-
-        // algo set up
-        Algorithm algorithm = Algorithm.RSA256(pubKey, null);
+        RSAPublicKey publicKey = getRSAPublicKey(token, issuer);
+        Algorithm algorithm = Algorithm.RSA256(publicKey, null);
 
         // verify
         JWTVerifier verifier = JWT
