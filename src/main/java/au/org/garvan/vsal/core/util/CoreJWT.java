@@ -30,19 +30,39 @@ import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 
+import java.security.interfaces.RSAPublicKey;
+
+import com.auth0.jwk.Jwk;
+import com.auth0.jwk.JwkException;
+import com.auth0.jwk.JwkProvider;
+import com.auth0.jwk.UrlJwkProvider;
+import com.auth0.jwt.interfaces.DecodedJWT;
+
 import java.io.UnsupportedEncodingException;
 import java.util.Properties;
 
 public class CoreJWT {
     public static void verifyJWT(String token, String jwtAccessValue)
-            throws UnsupportedEncodingException, JWTVerificationException {
+            throws UnsupportedEncodingException, JWTVerificationException, JwkException {
         Properties p = ReadConfig.getProp();
-        Algorithm algorithm = Algorithm.HMAC256(p.getProperty("jwtKey"));
-        JWTVerifier verifier = JWT.require(algorithm)
-                .withIssuer(p.getProperty("jwtIssuer"))
-                .withArrayClaim(p.getProperty("jwtAccessClaim"), jwtAccessValue)
-                .acceptLeeway(12) // leeway window in seconds
-                .build();
+        String issuer = p.getProperty("jwtIssuer");
+
+        // get pub key
+        JwkProvider provider = new UrlJwkProvider(issuer);
+        DecodedJWT jwt = JWT.decode(token);
+        Jwk jwk = provider.get(jwt.getKeyId());  // Get the kid from received JWT token
+        RSAPublicKey pubKey = (RSAPublicKey) jwk.getPublicKey();
+
+        // algo set up
+        Algorithm algorithm = Algorithm.RSA256(pubKey, null);
+
+        // verify
+        JWTVerifier verifier = JWT
+            .require(algorithm)
+            .withIssuer(issuer)
+            .withArrayClaim(p.getProperty("jwtAccessClaim"), jwtAccessValue)
+            .acceptLeeway(12) // leeway window in seconds
+            .build();
         verifier.verify(token);
     }
 }

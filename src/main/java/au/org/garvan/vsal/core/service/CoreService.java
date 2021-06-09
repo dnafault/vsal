@@ -31,7 +31,6 @@ import au.org.garvan.vsal.core.entity.CoreQuery;
 import au.org.garvan.vsal.core.entity.CoreResponse;
 import au.org.garvan.vsal.core.util.CoreJWT;
 import au.org.garvan.vsal.core.util.ReadConfig;
-import com.auth0.jwt.exceptions.JWTVerificationException;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.RequestScoped;
@@ -42,6 +41,19 @@ import java.nio.file.Paths;
 import java.util.AbstractMap;
 import java.util.List;
 import java.util.Properties;
+
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
+
+import com.auth0.jwk.Jwk;
+import com.auth0.jwk.JwkException;
+import com.auth0.jwk.JwkProvider;
+import com.auth0.jwk.UrlJwkProvider;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTVerifier;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.interfaces.DecodedJWT;
 
 /**
  * VSAL core service.
@@ -128,7 +140,7 @@ public class CoreService {
                     Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
                     res = new CoreResponse(q, elapsed, 0l, 0, null, 0, null, pheno, null, null, null);
                 }
-            } catch (UnsupportedEncodingException | JWTVerificationException e) {
+            } catch (UnsupportedEncodingException | JWTVerificationException | JwkException e) {
                 Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
                 Error errorResource = new Error("JWT verification failed", e.getMessage());
                 res = new CoreResponse(q, elapsed, errorResource);
@@ -154,7 +166,7 @@ public class CoreService {
                     Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
                     res = new CoreResponse(q, elapsed, 0l, 0, null, 0, null, null, genelist, null, null);
                 }
-            } catch (UnsupportedEncodingException | JWTVerificationException e) {
+            } catch (UnsupportedEncodingException | JWTVerificationException | JwkException e) {
                 Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
                 Error errorResource = new Error("JWT verification failed", e.getMessage());
                 res = new CoreResponse(q, elapsed, errorResource);
@@ -179,7 +191,7 @@ public class CoreService {
                     Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
                     res = new CoreResponse(q, elapsed, sampleIDs.getKey(), sampleIDs.getValue().size(), null, 0, sampleIDs.getValue(), null, null, null, null);
                 }
-            } catch (UnsupportedEncodingException | JWTVerificationException e) {
+            } catch (UnsupportedEncodingException | JWTVerificationException | JwkException e) {
                 Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
                 Error errorResource = new Error("JWT verification failed", e.getMessage());
                 res = new CoreResponse(q, elapsed, errorResource);
@@ -210,7 +222,7 @@ public class CoreService {
                         res = new CoreResponse(q, elapsed, vars.getKey(), samples.size(), vars.getValue(), vars.getValue().size(), null, null, null, null, null);
                     }
                 }
-            } catch (UnsupportedEncodingException | JWTVerificationException e) {
+            } catch (UnsupportedEncodingException | JWTVerificationException | JwkException e) {
                 Long elapsed = (System.nanoTime() - start) / NANO_TO_MILLI;
                 Error errorResource = new Error("JWT verification failed", e.getMessage());
                 res = new CoreResponse(q, elapsed, errorResource);
