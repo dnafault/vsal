@@ -20,23 +20,23 @@ public class SSVSCalls {
 
     private static Map<DatasetID, String> beaconURLs =
         new HashMap<DatasetID, String>() {{
-            put(DatasetID.MITO, "http://localhost:7081/ssvs/query");
-            put(DatasetID.MGRB, "http://localhost:7082/ssvs/query");
-            put(DatasetID.AC, "http://localhost:7083/ssvs/query");
-            put(DatasetID.DEMO, "http://localhost:7084/ssvs/query");
-            put(DatasetID.BM, "http://localhost:7085/ssvs/query");
-            put(DatasetID.EE, "http://localhost:7086/ssvs/query");
-            put(DatasetID.LD, "http://localhost:7087/ssvs/query");
-            put(DatasetID.CIRCA, "http://localhost:7088/ssvs/query");
-            put(DatasetID.ACPRO, "http://localhost:7089/ssvs/query");
-            put(DatasetID.ICCON, "http://localhost:7090/ssvs/query");
-            put(DatasetID.NEURO, "http://localhost:7084/ssvs/query");
-            put(DatasetID.CHILDRANZ, "http://localhost:7084/ssvs/query");
-            put(DatasetID.CARDIAC, "http://localhost:7084/ssvs/query");
-            put(DatasetID.GI, "http://localhost:7084/ssvs/query");
-            put(DatasetID.HIDDEN, "http://localhost:7084/ssvs/query");
-            put(DatasetID.KIDGEN, "http://localhost:7084/ssvs/query");
-            put(DatasetID.ASPREE, "http://localhost:7084/ssvs/query");
+            put(DatasetID.MITO, "http://localhost:7081/ssvs2/core/search");
+            put(DatasetID.MGRB, "http://localhost:7082/ssvs2/core/search");
+            put(DatasetID.AC, "http://localhost:7083/ssvs2/core/search");
+            put(DatasetID.DEMO, "http://localhost:7084/ssvs2/core/search");
+            put(DatasetID.BM, "http://localhost:7085/ssvs2/core/search");
+            put(DatasetID.EE, "http://localhost:7086/ssvs2/core/search");
+            put(DatasetID.LD, "http://localhost:7087/ssvs2/core/search");
+            put(DatasetID.CIRCA, "http://localhost:7088/ssvs2/core/search");
+            put(DatasetID.ACPRO, "http://localhost:7089/ssvs2/core/search");
+            put(DatasetID.ICCON, "http://localhost:7090/ssvs2/core/search");
+            put(DatasetID.NEURO, "http://localhost:7084/ssvs2/core/search");
+            put(DatasetID.CHILDRANZ, "http://localhost:7084/ssvs2/core/search");
+            put(DatasetID.CARDIAC, "http://localhost:7084/ssvs2/core/search");
+            put(DatasetID.GI, "http://localhost:7084/ssvs2/core/search");
+            put(DatasetID.HIDDEN, "http://localhost:7084/ssvs2/core/search");
+            put(DatasetID.KIDGEN, "http://localhost:7091/ssvs2/core/search");
+            put(DatasetID.ASPREE, "http://localhost:7084/ssvs2/core/search");
         }};
     private static Properties prop = null;
     private static String propFileName = "vsal.properties";
@@ -83,6 +83,8 @@ public class SSVSCalls {
                     beaconURLs.put(DatasetID.CIRCA, prop.getProperty("beacon.url.circa"));
                 if (prop.getProperty("beacon.url.iccon") != null)
                     beaconURLs.put(DatasetID.ICCON, prop.getProperty("beacon.url.iccon"));
+                if (prop.getProperty("beacon.url.kidgen") != null)
+                    beaconURLs.put(DatasetID.KIDGEN, prop.getProperty("beacon.url.kidgen"));
             }
         }
     }

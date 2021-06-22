@@ -4,6 +4,7 @@ import au.org.garvan.vsal.beacon.entity.*;
 import au.org.garvan.vsal.beacon.rest.SSVSCalls;
 import au.org.garvan.vsal.beacon.util.QueryUtils;
 import au.org.garvan.vsal.core.entity.DatasetID;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.RequestScoped;
@@ -77,10 +78,20 @@ public class BeaconSSVS implements BeaconService {
         try {
             q.setPosition(q.getPosition()+1);  // convert 0-based beacon protocol into 1-based VCF position
             BeaconResponseSSVS res = SSVSCalls.beacon(q);
+            if (res == null)
+                throw new RuntimeException("Response is null");
             q.setPosition(q.getPosition()-1);
+            q.setDatasetId("MGRB"); // fixme: currently only MGRB is in prod
             List<Allele> alleles = new LinkedList<>();
-            alleles.add(new Allele(res.getAllele(), res.getAf()));
-            Response responseResource = new Response(res.getAc() > 0, res.getAc(), alleles, "Beacon coordinates are 0-based!", null);
+            Boolean exists = false;
+            Integer observed = 0;
+            if (res.getVariants() != null && !res.getVariants().isEmpty()) {
+                Variant v = res.getVariants().get(0);
+                alleles.add(new Allele(q.getAllele(), v.getAf()));
+                exists = v.getAf() > 0;
+                observed = v.getAc();
+            }
+            Response responseResource = new Response(exists, observed, alleles, "Beacon coordinates are 0-based!", null);
             return new BeaconResponse(beacon.getId(), q, responseResource);
         } catch (Exception e) {
             au.org.garvan.vsal.beacon.entity.Error errorResource = new au.org.garvan.vsal.beacon.entity.Error("VS Runtime exception", e.getMessage());

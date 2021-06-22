@@ -1,45 +1,66 @@
 package au.org.garvan.vsal.beacon.entity;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import java.util.List;
 
 @XmlRootElement(name = "ssvs-beacon-response")
 public class BeaconResponseSSVS {
 
-    private String allele;
-    private Double af;
-    private Integer ac;
+    private CoreQuery coreQuery;
+    private Long ssvsTimeMs;  // ms
+    private List<Variant> variants;
+    private Long total;  // total # variants
+    private Error error;
 
     public BeaconResponseSSVS() {
         // needed for JAXB
     }
 
-    public BeaconResponseSSVS(String allele, Double af, Integer ac) {
-        this.allele = allele;
-        this.af = af;
-        this.ac = ac;
+    public BeaconResponseSSVS(CoreQuery coreQuery, Long ssvsTimeMs, List<Variant> variants, Long total, Error error) {
+        this.coreQuery = coreQuery;
+        this.ssvsTimeMs = ssvsTimeMs;
+        this.variants = variants;
+        this.total = total;
+        this.error = error;
     }
 
-    public String getAllele() {
-        return allele;
+    public CoreQuery getCoreQuery() {
+        return coreQuery;
     }
 
-    public void setAllele(String allele) {
-        this.allele = allele;
+    public void setCoreQuery(CoreQuery coreQuery) {
+        this.coreQuery = coreQuery;
     }
 
-    public Double getAf() {
-        return af;
+    public Long getSsvsTimeMs() {
+        return ssvsTimeMs;
     }
 
-    public void setAf(Double af) {
-        this.af = af;
+    public void setSsvsTimeMs(Long ssvsTimeMs) {
+        this.ssvsTimeMs = ssvsTimeMs;
     }
 
-    public Integer getAc() {
-        return ac;
+    public List<Variant> getVariants() {
+        return variants;
     }
 
-    public void setAc(Integer ac) {
-        this.ac = ac;
+    public void setVariants(List<Variant> variants) {
+        this.variants = variants;
+    }
+
+    public Long getTotal() {
+        return total;
+    }
+
+    public void setTotal(Long total) {
+        this.total = total;
+    }
+
+    public Error getError() {
+        return error;
+    }
+
+    public void setError(Error error) {
+        this.error = error;
     }
 }
